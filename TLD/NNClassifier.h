@@ -30,13 +30,6 @@ private:
 
     float calcNCC(const Mat &patch1, const Mat &patch2);
     
-    //following 4 funcions require patch is [patchSize x patchSize]
-    float calcSP(const Mat &patch);
-    float calcSPHalf(const Mat &patch);
-    float calcSN(const Mat &patch);
-    float calcSr(const Mat &patch);
-    float calcSc(const Mat &patch);
-    
     Mat getPatch(const Mat &img);
     
 public:
@@ -45,17 +38,23 @@ public:
     
     typedef pair<Mat, bool> tTrainData;
     typedef vector<tTrainData> tTrainDataSet;
-
     
     NNClassifier();
     
     ~NNClassifier();
     
-    void update(const Mat &img, int c);
+    void update(const Mat &patch, int c);
+    void trainInit(const tTrainDataSet &trainDataSet);
     void train(const tTrainDataSet &trainDataSet);
     bool getClass(const Mat &img);
     
     void showModel();
+    
+    float calcSP(const Mat &img);
+    float calcSPHalf(const Mat &img);
+    float calcSN(const Mat &img);
+    float calcSr(const Mat &img);
+    float calcSc(const Mat &img);
 };
 
 #endif /* defined(__TLD__NNClassifier__) */

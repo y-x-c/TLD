@@ -13,6 +13,7 @@
 #include "RandomFernsClassifier.h"
 #include "NNClassifier.h"
 #include "Detector.h"
+#include "TLD.h"
 
 using namespace std;
 using namespace cv;
@@ -258,13 +259,39 @@ void testVarClassifier()
     cout << " " << std.val[0] * std.val[0] << endl;
 }
 
+void testTLD()
+{
+    string filename("/Users/Orthocenter/Developments/MedianFlow/car.mpg");
+    VideoController videoController(filename);
+    ViewController viewController(&videoController);
+    
+    videoController.readNextFrame();
+
+    Rect rect = viewController.getRect();
+    
+    TLD tld(videoController.getCurrFrame(), rect);
+    
+    while(videoController.readNextFrame())
+    {
+        tld.setNextFrame(videoController.getCurrFrame());
+        
+        tld.track();
+        
+        viewController.refreshCache();
+        viewController.drawRect(tld.getBB());
+        viewController.showCache();
+        waitKey(1);
+    }
+}
+
 int main()
 {
     freopen("data.txt", "r", stdin);
     //testRandomFernsClassifier();
     //testNNClassifier();
     //testRFNNClassifier();
-    testDetector();
+    //testDetector();
     //testVarClassifier();
+    testTLD();
     return 0;
 }

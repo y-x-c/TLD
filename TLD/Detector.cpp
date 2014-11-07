@@ -48,8 +48,16 @@ void Detector::train(const Mat &img, const Rect &patternBB)
     cerr << "Finished.." << endl;
     
     cerr << "Train Nearest Neighbor Classifier" << endl;
-    nNClassifier.train(trainDataSet);
+    nNClassifier.trainInit(trainDataSet);
     cerr << "Finished.." << endl;
+}
+
+void Detector::update()
+{
+    cerr << "Update Random Ferns Classifier." << endl;
+    rFClassifier.train(trainDataSet);
+    cerr << "Update Nearest Neighbor Classifier" << endl;
+    nNClassifier.train(trainDataSet);
 }
 
 float Detector::overlap(const Rect &bb1, const Rect &bb2)
@@ -70,6 +78,26 @@ float Detector::overlap(const Rect &bb1, const Rect &bb2)
     return area_n / area_u;
 }
 
+void Detector::sortByOverlap(const Rect &bb, bool rand)
+{
+    for(auto &it : scanBBs)
+    {
+        it.second = overlap(bb, it.first);
+    }
+    
+    sort(scanBBs.begin(), scanBBs.end(), scanBBCmp);
+    
+    if(rand)
+    {
+        auto it = scanBBs.begin();
+    
+        for(; it != scanBBs.end() && it->second > thBadBB; it++) ;
+    
+        random_shuffle(it, scanBBs.end());
+    }
+
+}
+
 void Detector::genScanBB()
 {
     int minWH = min(patternBB.width, patternBB.height);
@@ -84,24 +112,18 @@ void Detector::genScanBB()
             for(int y = 0; y + height <= imgH; y += dy)
             {
                 Rect bb(x, y, width, height);
-                scanBBs.push_back(make_pair(bb, overlap(bb, patternBB)));
+                scanBBs.push_back(tScanBB(bb, -1));
             }
             
             Rect bb(x, imgH - height, width, height);
-            scanBBs.push_back(make_pair(bb, overlap(bb, patternBB)));
+            scanBBs.push_back(tScanBB(bb, -1));
         }
         
         Rect bb(imgW - width, imgH - height, width, height);
-        scanBBs.push_back(make_pair(bb, overlap(bb, patternBB)));
+        scanBBs.push_back(tScanBB(bb, -1));
     }
     
-    sort(scanBBs.begin(), scanBBs.end(), scanBBCmp);
-    
-    auto it = scanBBs.begin();
-
-    for(; it != scanBBs.end() && it->second > thBadBB; it++) ;
-    
-    random_shuffle(it, scanBBs.end());
+    sortByOverlap(patternBB, true);
 }
 
 void Detector::genWarped(const Mat &img, Mat &warped)
@@ -151,25 +173,29 @@ void Detector::genNegData(const Mat &img, Detector::tTrainDataSet &trainDataSet)
 void Detector::dectect(const Mat &_img, tRet &ret)
 {
     cerr << "Start detecting." << endl;
-
-    Mat img;
-    cvtColor(_img, img, CV_BGR2GRAY);
+    
+    if(!ret.empty()) ret.clear();
+    
+    Mat img(_img);
+    //cvtColor(_img, img, CV_BGR2GRAY);
     VarClassifier varClassifier(img);
     
-    //int count = 0;
-    for(auto scanBB : scanBBs)
+    int count = 0;
+    int acVar = 0, acRF = 0;
+    for(auto &scanBB : scanBBs)
     {
         Rect &bb = scanBB.first;
-        //if(ret.size() >= 3) break;
-        //cerr << endl << "Bounding box #" << count++ << endl;
+        count++;
+        //cerr << endl << "Bounding box #" << count << endl;
         
         if(varClassifier.getClass(bb, patternVar) == cPos)
         {
             //cerr << "Accepted by Variance Classifier" << endl;
+            acVar++;
             if(rFClassifier.getClass(img(bb)) == cPos)
             {
                 //cerr << "Accepted by Random Ferns Classifier" << endl;
-                
+                acRF++;
                 //imshow("img(bb)", img(bb));
                 //waitKey();
                 
@@ -177,23 +203,36 @@ void Detector::dectect(const Mat &_img, tRet &ret)
                 {
                     //cerr << "Accepted by Nearest Neighbor Classifier" << endl;
                     ret.push_back(bb);
-                    cerr << "Find " << ret.size() << " object(s)" << endl;
+                    //cerr << "Find " << ret.size() << " object(s)" << endl;
+                    scanBB.status = bbAC;
                 }
                 else
                 {
                     //cerr << "Rejected by Nearest Neighbor Classifier" << endl;
+                    scanBB.status = bbRejNN;
                 }
             }
             else
             {
                 //cerr << "Rejected by Random Ferns Classifier" << endl;
+                scanBB.status = bbRejRF;
             }
         }
         else
         {
             //cerr << "Rejected by Variance Classifier" << endl;
+            scanBB.status = bbRejVar;
         }
     }
     
-    cerr << "Finish detecting" << endl;
+    cerr << "After Variance Classifier : " << acVar << " bounding boxes." << endl;
+    cerr << "After Random Ferns Classifier: " << acRF << " bounding boxes." << endl;
+    cerr << "After Nearest Neighbor Classifier " << ret.size() << " bounding boxes." << endl;
+    
+    cerr << "Finish detecting." << endl;
+}
+
+float Detector::calcSc(const cv::Mat &img)
+{
+    return nNClassifier.calcSc(img);
 }

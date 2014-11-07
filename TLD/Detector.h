@@ -17,15 +17,26 @@
 #include "VarClassifier.h"
 #include "RandomFernsClassifier.h"
 #include "NNClassifier.h"
+#include "Learner.h"
 
 using namespace std;
 using namespace cv;
 
 class Detector
 {
+    friend class Learner;
 public:
+    struct tScanBB
+    {
+        Rect first;  //bb
+        float second;//overlap
+        char status;
+        
+        tScanBB(const Rect &_bb):first(_bb), second(-1), status(0){};
+        tScanBB(const Rect &_bb, const float _ol):first(_bb), second(_ol), status(0){};
+    };
+    
     typedef vector<Rect> tRet;
-    typedef pair<Rect, float> tScanBB;
     typedef vector<tScanBB> tScanBBs;
     typedef pair<Mat, bool> tTrainData;
     typedef vector<tTrainData> tTrainDataSet;
@@ -41,8 +52,12 @@ public:
     constexpr static const float thBadBB = 0.2;
     static const int thPosData = 10;
     
+    static const char bbAC = 1;
+    static const char bbRejVar = 2;
+    static const char bbRejRF = 3;
+    static const char bbRejNN = 4;
     
-public:
+private:
     RandomFernsClassifier rFClassifier;
     NNClassifier nNClassifier;
     
@@ -61,10 +76,13 @@ public:
     tScanBBs scanBBs;
     void genScanBB();
     
+    void sortByOverlap(const Rect &bb, bool rand = false);
+    
     void genWarped(const Mat &img, Mat &warped);
     void genPosData(const Mat &img, tTrainDataSet &trainDataSet);
     void genNegData(const Mat &img, tTrainDataSet &trainDataSet);
     
+    void update();
     void train(const Mat &img, const Rect &patternBB);
     
 public:
@@ -77,6 +95,8 @@ public:
     }
     
     void dectect(const Mat &img, tRet &ret);
+    
+    float calcSc(const Mat &img);
     
     ~Detector();
 };

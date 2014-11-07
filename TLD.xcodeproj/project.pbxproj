@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		B98256BE1A0BBADA00FEDB94 /* VarClassifier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98256BC1A0BBADA00FEDB94 /* VarClassifier.cpp */; };
+		B98256C31A0CF07800FEDB94 /* OpticalFlow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98256C01A0CF07800FEDB94 /* OpticalFlow.cpp */; };
+		B98256C41A0CF07800FEDB94 /* MedianFlow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98256C21A0CF07800FEDB94 /* MedianFlow.cpp */; };
+		B98256CC1A0CF18100FEDB94 /* TLD.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98256CA1A0CF18100FEDB94 /* TLD.cpp */; };
+		B98256CF1A0CF19E00FEDB94 /* Learner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98256CD1A0CF19E00FEDB94 /* Learner.cpp */; };
 		B98AEAED1A08B8CA006F7A7A /* VideoController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98AEAE91A08B8CA006F7A7A /* VideoController.cpp */; };
 		B98AEAEE1A08B8CA006F7A7A /* ViewController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98AEAEB1A08B8CA006F7A7A /* ViewController.cpp */; };
 		B98AEAF11A08E514006F7A7A /* NNClassifier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98AEAEF1A08E514006F7A7A /* NNClassifier.cpp */; };
@@ -49,6 +53,14 @@
 /* Begin PBXFileReference section */
 		B98256BC1A0BBADA00FEDB94 /* VarClassifier.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VarClassifier.cpp; sourceTree = "<group>"; };
 		B98256BD1A0BBADA00FEDB94 /* VarClassifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VarClassifier.h; sourceTree = "<group>"; };
+		B98256BF1A0CF07800FEDB94 /* OpticalFlow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OpticalFlow.h; path = MedianFlow/MedianFlow/OpticalFlow.h; sourceTree = SOURCE_ROOT; };
+		B98256C01A0CF07800FEDB94 /* OpticalFlow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OpticalFlow.cpp; path = MedianFlow/MedianFlow/OpticalFlow.cpp; sourceTree = SOURCE_ROOT; };
+		B98256C11A0CF07800FEDB94 /* MedianFlow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MedianFlow.h; path = MedianFlow/MedianFlow/MedianFlow.h; sourceTree = SOURCE_ROOT; };
+		B98256C21A0CF07800FEDB94 /* MedianFlow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MedianFlow.cpp; path = MedianFlow/MedianFlow/MedianFlow.cpp; sourceTree = SOURCE_ROOT; };
+		B98256CA1A0CF18100FEDB94 /* TLD.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TLD.cpp; sourceTree = "<group>"; };
+		B98256CB1A0CF18100FEDB94 /* TLD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TLD.h; sourceTree = "<group>"; };
+		B98256CD1A0CF19E00FEDB94 /* Learner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Learner.cpp; sourceTree = "<group>"; };
+		B98256CE1A0CF19E00FEDB94 /* Learner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Learner.h; sourceTree = "<group>"; };
 		B98AEAE91A08B8CA006F7A7A /* VideoController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoController.cpp; sourceTree = "<group>"; };
 		B98AEAEA1A08B8CA006F7A7A /* VideoController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoController.h; sourceTree = "<group>"; };
 		B98AEAEB1A08B8CA006F7A7A /* ViewController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewController.cpp; sourceTree = "<group>"; };
@@ -110,12 +122,66 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B98256C51A0CF0A500FEDB94 /* Tracker */ = {
+			isa = PBXGroup;
+			children = (
+				B98256BF1A0CF07800FEDB94 /* OpticalFlow.h */,
+				B98256C01A0CF07800FEDB94 /* OpticalFlow.cpp */,
+				B98256C11A0CF07800FEDB94 /* MedianFlow.h */,
+				B98256C21A0CF07800FEDB94 /* MedianFlow.cpp */,
+			);
+			name = Tracker;
+			path = TLD;
+			sourceTree = "<group>";
+		};
+		B98256C61A0CF0AF00FEDB94 /* Detector */ = {
+			isa = PBXGroup;
+			children = (
+				B9E5108A1A088FE10069B795 /* RandomFernsClassifier.cpp */,
+				B9E5108B1A088FE10069B795 /* RandomFernsClassifier.h */,
+				B98AEAEF1A08E514006F7A7A /* NNClassifier.cpp */,
+				B98AEAF01A08E514006F7A7A /* NNClassifier.h */,
+				B98AEAF21A0A02C3006F7A7A /* Detector.cpp */,
+				B98AEAF31A0A02C3006F7A7A /* Detector.h */,
+				B98256BC1A0BBADA00FEDB94 /* VarClassifier.cpp */,
+				B98256BD1A0BBADA00FEDB94 /* VarClassifier.h */,
+			);
+			name = Detector;
+			path = TLD;
+			sourceTree = "<group>";
+		};
+		B98256C71A0CF0B600FEDB94 /* Learner */ = {
+			isa = PBXGroup;
+			children = (
+				B98256CD1A0CF19E00FEDB94 /* Learner.cpp */,
+				B98256CE1A0CF19E00FEDB94 /* Learner.h */,
+			);
+			name = Learner;
+			path = TLD;
+			sourceTree = "<group>";
+		};
+		B98256C81A0CF12600FEDB94 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				B98AEAE91A08B8CA006F7A7A /* VideoController.cpp */,
+				B98AEAEA1A08B8CA006F7A7A /* VideoController.h */,
+				B98AEAEB1A08B8CA006F7A7A /* ViewController.cpp */,
+				B98AEAEC1A08B8CA006F7A7A /* ViewController.h */,
+			);
+			name = Utils;
+			path = TLD;
+			sourceTree = "<group>";
+		};
 		B9E510771A088B950069B795 = {
 			isa = PBXGroup;
 			children = (
-				B9E510B11A0891750069B795 /* Library */,
+				B98256C81A0CF12600FEDB94 /* Utils */,
+				B98256C71A0CF0B600FEDB94 /* Learner */,
+				B98256C61A0CF0AF00FEDB94 /* Detector */,
+				B98256C51A0CF0A500FEDB94 /* Tracker */,
 				B9E510821A088B950069B795 /* TLD */,
 				B9E510811A088B950069B795 /* Products */,
+				B9E510B11A0891750069B795 /* Library */,
 			);
 			sourceTree = "<group>";
 		};
@@ -130,19 +196,9 @@
 		B9E510821A088B950069B795 /* TLD */ = {
 			isa = PBXGroup;
 			children = (
-				B98AEAE91A08B8CA006F7A7A /* VideoController.cpp */,
-				B98AEAEA1A08B8CA006F7A7A /* VideoController.h */,
-				B98AEAEB1A08B8CA006F7A7A /* ViewController.cpp */,
-				B98AEAEC1A08B8CA006F7A7A /* ViewController.h */,
 				B9E510831A088B950069B795 /* main.cpp */,
-				B9E5108A1A088FE10069B795 /* RandomFernsClassifier.cpp */,
-				B9E5108B1A088FE10069B795 /* RandomFernsClassifier.h */,
-				B98AEAEF1A08E514006F7A7A /* NNClassifier.cpp */,
-				B98AEAF01A08E514006F7A7A /* NNClassifier.h */,
-				B98AEAF21A0A02C3006F7A7A /* Detector.cpp */,
-				B98AEAF31A0A02C3006F7A7A /* Detector.h */,
-				B98256BC1A0BBADA00FEDB94 /* VarClassifier.cpp */,
-				B98256BD1A0BBADA00FEDB94 /* VarClassifier.h */,
+				B98256CA1A0CF18100FEDB94 /* TLD.cpp */,
+				B98256CB1A0CF18100FEDB94 /* TLD.h */,
 			);
 			path = TLD;
 			sourceTree = "<group>";
@@ -228,13 +284,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B98256CF1A0CF19E00FEDB94 /* Learner.cpp in Sources */,
 				B98AEAF11A08E514006F7A7A /* NNClassifier.cpp in Sources */,
 				B98AEAF41A0A02C3006F7A7A /* Detector.cpp in Sources */,
 				B98AEAED1A08B8CA006F7A7A /* VideoController.cpp in Sources */,
 				B9E5108C1A088FE10069B795 /* RandomFernsClassifier.cpp in Sources */,
+				B98256CC1A0CF18100FEDB94 /* TLD.cpp in Sources */,
+				B98256C31A0CF07800FEDB94 /* OpticalFlow.cpp in Sources */,
 				B98AEAEE1A08B8CA006F7A7A /* ViewController.cpp in Sources */,
 				B9E510841A088B950069B795 /* main.cpp in Sources */,
 				B98256BE1A0BBADA00FEDB94 /* VarClassifier.cpp in Sources */,
+				B98256C41A0CF07800FEDB94 /* MedianFlow.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
