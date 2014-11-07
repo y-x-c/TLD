@@ -44,19 +44,27 @@ RandomFernsClassifier::~RandomFernsClassifier()
     
 }
 
-void RandomFernsClassifier::update(const Mat &img, bool c)
+void RandomFernsClassifier::update(const Mat &_img, bool c, float p)
 {
-    float p = getPosteriors(img);
+    Mat img;
+    GaussianBlur(_img, img, Size(3, 3), 0);
+    
+    //imshow("ttt", img);
+    //waitKey();
+    
+    if(p == -1.) p = getPosteriors(img);
     
     if(c == cPos)
     {
         if(p <= pTh)
         {
+            //static int count = 0;
+            //cerr << ++count << endl;
             for(int iFern = 0; iFern < nFerns; iFern++)
             {
                 int code = getCode(img, iFern);
                 counter[iFern][code].first++;
-                cerr << iFern << " " << code << endl;
+                //cerr << iFern << " " << code << endl;
             }
         }
     }
@@ -68,7 +76,7 @@ void RandomFernsClassifier::update(const Mat &img, bool c)
             {
                 int code = getCode(img, iFern);
                 counter[iFern][code].second++;
-                cerr << iFern << " " << code << endl;
+                //cerr << iFern << " " << code << endl;
             }
         }
     }
@@ -77,6 +85,7 @@ void RandomFernsClassifier::update(const Mat &img, bool c)
 int RandomFernsClassifier::getCode(const Mat &img, int idx)
 {
     //cerr << "code at fern " << idx << ": ";
+    assert(img.type() == CV_8U);
     int code = 0;
     for(int i = 0; i < nLeaves; i++)
     {
@@ -85,8 +94,9 @@ int RandomFernsClassifier::getCode(const Mat &img, int idx)
         int p2x = ferns[idx][i].second.x * img.cols;
         int p2y = ferns[idx][i].second.y * img.rows;
         
-        int v1 = img.at<int>(p1y, p1x);
-        int v2 = img.at<int>(p2y, p2x);
+        // use char instead of int
+        int v1 = img.at<char>(p1y, p1x);
+        int v2 = img.at<char>(p2y, p2x);
         
         code = (code << 1) | (v1 < v2);
         
@@ -108,22 +118,36 @@ float RandomFernsClassifier::getPosteriors(const Mat &img)
         n = counter[i][code].second;
         
         if(p == 0)
-            sumP = 0.0;
+            ;
+            //sumP += 0.0;
         else
             sumP += (float)p / (p + n);
     }
     
     float averageP = sumP / nFerns;
     
+    // debug
+    //if(averageP > 0.5){
+    //    cerr << averageP << endl;
+    //    imshow("p", img);
+    //    waitKey();
+    //}
+    //imshow("p", img);
+    //waitKey();
+    // end debug
+    
     return averageP;
 }
 
-bool RandomFernsClassifier::getClass(const Mat &img)
+bool RandomFernsClassifier::getClass(const Mat &_img)
 {
+    Mat img;
+    GaussianBlur(_img, img, Size(3, 3), 0);
+    
     return getPosteriors(img) >= pTh;
 }
 
-void RandomFernsClassifier::train(const vector<tTrainData> &trainDataSet)
+void RandomFernsClassifier::train(const tTrainDataSet &trainDataSet)
 {
     for(auto trainData : trainDataSet)
     {

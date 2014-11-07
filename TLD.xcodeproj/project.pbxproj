@@ -7,8 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B98256BE1A0BBADA00FEDB94 /* VarClassifier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98256BC1A0BBADA00FEDB94 /* VarClassifier.cpp */; };
 		B98AEAED1A08B8CA006F7A7A /* VideoController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98AEAE91A08B8CA006F7A7A /* VideoController.cpp */; };
 		B98AEAEE1A08B8CA006F7A7A /* ViewController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98AEAEB1A08B8CA006F7A7A /* ViewController.cpp */; };
+		B98AEAF11A08E514006F7A7A /* NNClassifier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98AEAEF1A08E514006F7A7A /* NNClassifier.cpp */; };
+		B98AEAF41A0A02C3006F7A7A /* Detector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98AEAF21A0A02C3006F7A7A /* Detector.cpp */; };
 		B9E510841A088B950069B795 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9E510831A088B950069B795 /* main.cpp */; };
 		B9E5108C1A088FE10069B795 /* RandomFernsClassifier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9E5108A1A088FE10069B795 /* RandomFernsClassifier.cpp */; };
 		B9E5109F1A0891660069B795 /* libopencv_calib3d.2.4.9.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B9E5108D1A0891660069B795 /* libopencv_calib3d.2.4.9.dylib */; };
@@ -44,10 +47,16 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B98256BC1A0BBADA00FEDB94 /* VarClassifier.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VarClassifier.cpp; sourceTree = "<group>"; };
+		B98256BD1A0BBADA00FEDB94 /* VarClassifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VarClassifier.h; sourceTree = "<group>"; };
 		B98AEAE91A08B8CA006F7A7A /* VideoController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoController.cpp; sourceTree = "<group>"; };
 		B98AEAEA1A08B8CA006F7A7A /* VideoController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoController.h; sourceTree = "<group>"; };
 		B98AEAEB1A08B8CA006F7A7A /* ViewController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewController.cpp; sourceTree = "<group>"; };
 		B98AEAEC1A08B8CA006F7A7A /* ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		B98AEAEF1A08E514006F7A7A /* NNClassifier.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NNClassifier.cpp; sourceTree = "<group>"; };
+		B98AEAF01A08E514006F7A7A /* NNClassifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NNClassifier.h; sourceTree = "<group>"; };
+		B98AEAF21A0A02C3006F7A7A /* Detector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Detector.cpp; sourceTree = "<group>"; };
+		B98AEAF31A0A02C3006F7A7A /* Detector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Detector.h; sourceTree = "<group>"; };
 		B9E510801A088B950069B795 /* TLD */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = TLD; sourceTree = BUILT_PRODUCTS_DIR; };
 		B9E510831A088B950069B795 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		B9E5108A1A088FE10069B795 /* RandomFernsClassifier.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RandomFernsClassifier.cpp; sourceTree = "<group>"; };
@@ -128,6 +137,12 @@
 				B9E510831A088B950069B795 /* main.cpp */,
 				B9E5108A1A088FE10069B795 /* RandomFernsClassifier.cpp */,
 				B9E5108B1A088FE10069B795 /* RandomFernsClassifier.h */,
+				B98AEAEF1A08E514006F7A7A /* NNClassifier.cpp */,
+				B98AEAF01A08E514006F7A7A /* NNClassifier.h */,
+				B98AEAF21A0A02C3006F7A7A /* Detector.cpp */,
+				B98AEAF31A0A02C3006F7A7A /* Detector.h */,
+				B98256BC1A0BBADA00FEDB94 /* VarClassifier.cpp */,
+				B98256BD1A0BBADA00FEDB94 /* VarClassifier.h */,
 			);
 			path = TLD;
 			sourceTree = "<group>";
@@ -213,10 +228,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B98AEAF11A08E514006F7A7A /* NNClassifier.cpp in Sources */,
+				B98AEAF41A0A02C3006F7A7A /* Detector.cpp in Sources */,
 				B98AEAED1A08B8CA006F7A7A /* VideoController.cpp in Sources */,
 				B9E5108C1A088FE10069B795 /* RandomFernsClassifier.cpp in Sources */,
 				B98AEAEE1A08B8CA006F7A7A /* ViewController.cpp in Sources */,
 				B9E510841A088B950069B795 /* main.cpp in Sources */,
+				B98256BE1A0BBADA00FEDB94 /* VarClassifier.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -309,6 +327,7 @@
 					"/usr/local/lib/**",
 					/usr/local/Cellar/opencv/2.4.9/lib,
 				);
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -325,6 +344,7 @@
 					"/usr/local/lib/**",
 					/usr/local/Cellar/opencv/2.4.9/lib,
 				);
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

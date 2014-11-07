@@ -28,8 +28,7 @@ public:
     
 private:
     const float pTh = 0.5;
-    const float nTh = 0.5;
-
+    const float nTh = 1 - pTh;
     
     int nFerns, nLeaves;
     vector<tPNCounter> counter;
@@ -42,13 +41,13 @@ public:
     
     ~RandomFernsClassifier();
     
-    void update(const Mat &img, bool c);
+    void update(const Mat &img, bool c, float p = -1.);
     
     int getCode(const Mat &img, int idx);
     float getPosteriors(const Mat &img);
     bool getClass(const Mat &img);
     
-    void train(const vector<tTrainData> &trainDataSet);
+    void train(const tTrainDataSet &trainDataSet);
 };
 
 #endif /* defined(__TLD__RandomFernsClassifier__) */
