@@ -13,25 +13,30 @@ OpticalFlow::OpticalFlow()
 
 }
 
-OpticalFlow::OpticalFlow(const Mat &prevImg, const Mat &nextImg, bool _method)
+OpticalFlow::OpticalFlow(const Mat &prevImg, const Mat &nextImg)
 {
-    this->method = _method;
+    assert(prevImg.type() == CV_8U || prevImg.type() == CV_8UC3);
+    assert(nextImg.type() == CV_8U || nextImg.type() == CV_8UC3);
     
-    //check image size    
+    // ONLY OPENCV'S OPTICAL FLOW IS AVAILABLE NOW
+    assert(OF_USE_OPENCV == 1);
+    
+    //check image size
+    
     if(prevImg.channels() == 3)
+        // for invoking this class directly
         cvtColor(prevImg, this->prevImg, CV_BGR2GRAY);
     else
-        prevImg.copyTo(this->prevImg);
+        this->prevImg = prevImg;
+        //prevImg.copyTo(this->prevImg);
     
     if(prevImg.channels() == 3)
         cvtColor(nextImg, this->nextImg, CV_BGR2GRAY);
     else
-        nextImg.copyTo(this->nextImg);
-    
-    this->prevImg.convertTo(this->prevImg, CV_8U);
-    this->nextImg.convertTo(this->nextImg, CV_8U);
+        this->nextImg = nextImg;
+        //nextImg.copyTo(this->nextImg);
 
-    if(method != USEOPENCV) preprocess();
+    if(!OF_USE_OPENCV) preprocess();
 }
 
 OpticalFlow::~OpticalFlow()
@@ -132,10 +137,6 @@ Point2f OpticalFlow::calculate(const Point2f &trackPoint, const Mat &Ix, const M
     const int imgWidth = Ix.cols;
     const int imgHeight = Ix.rows;
     
-    //if(!isInside(trackPoint, imgWidth, imgHeight))
-    //{
-    //    return Point2f(-1, -1);
-    //}
     assert(isInside(trackPoint, imgWidth, imgHeight));
     
     vector<Point2f> pts = generateNeighborPts(trackPoint, imgWidth, imgHeight);
@@ -193,43 +194,22 @@ Point2f OpticalFlow::calculatePyr(const Point2f &trackPoint)
     return resPoint;
 }
 
-void OpticalFlow::trackPts(vector<Point2f> &pts, vector<Point2f> &retPts)
+void OpticalFlow::trackPts(vector<TYPE_OF_PT> &pts, vector<TYPE_OF_PT> &retPts, vector<uchar> &status)
 {
-    if(method == USEOPENCV)
+    if(OF_USE_OPENCV)
     {
-        vector<uchar> status;
         vector<float> err;
-        vector<Point2f> _pts, _retPts;
         
         calcOpticalFlowPyrLK(prevImg, nextImg, pts, retPts, status, err, Size(15, 15), 1);
-        
-        for(int i = 0; i < retPts.size(); i++)
-        {
-            if(status[i] == 0) retPts[i] = OFError;
-        }
     }
-    else{
+    else
+    {
         retPts.clear();
         for(auto it : retPts)
         {
             Point2f pt = calculatePyr(it);
             
             retPts.push_back(pt);
-        }
-    }
-}
-
-void OpticalFlow::swapImg()
-{
-    if(method == USEOPENCV)
-    {
-        swap(prevImg, nextImg);
-    }
-    else{
-        prevImgs.swap(nextImgs);
-        for(int i = 0; i < maxLevel; i++)
-        {
-            Its[i] *= -1;
         }
     }
 }

@@ -12,6 +12,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <vector>
+#include "TLDSystemStruct.h"
 
 using namespace std;
 using namespace cv;
@@ -19,12 +20,6 @@ using namespace cv;
 class NNClassifier
 {
 private:
-    static const int thModelSize = 100;
-    static const int patchSize = 15;
-    constexpr static const float thMargin = 0.1;
-    
-    float thNN = 0.6;
-    
     //save positive patches and negative patches in [1 x (patchSize ^ 2)]
     vector<Mat> pPatches, nPatches;
 
@@ -32,23 +27,25 @@ private:
     
     Mat getPatch(const Mat &img);
     
+    bool update(const Mat &patch, int c);
+    
+    float thPos;
+    
+    Mat newSamplesP, newSamplesN;
+    void addToNewSamples(const Mat &patch, const int c);
+    
 public:
-    const bool cPos = true; // positive
-    const bool cNeg = false;
-    
-    typedef pair<Mat, bool> tTrainData;
-    typedef vector<tTrainData> tTrainDataSet;
-    
     NNClassifier();
     
     ~NNClassifier();
     
-    void update(const Mat &patch, int c);
-    void trainInit(const tTrainDataSet &trainDataSet);
-    void train(const tTrainDataSet &trainDataSet);
-    bool getClass(const Mat &img);
+    void trainInit(const TYPE_TRAIN_DATA_SET &trainDataSet);
+    void train(const TYPE_TRAIN_DATA_SET &trainDataSet);
     
     void showModel();
+    
+    // assert : img.type() == CV_8U
+    bool getClass(const Mat &img);
     
     float calcSP(const Mat &img);
     float calcSPHalf(const Mat &img);

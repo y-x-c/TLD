@@ -11,17 +11,13 @@
 
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include "TLDSystemStruct.h"
 
 using namespace std;
 using namespace cv;
 
 class VarClassifier
 {
-public:
-    constexpr static const float varFactor = 0.5;
-    static const bool cPos = true;
-    static const bool cNeg = false;
-    
 private:
     Mat sum, sqsum;
     

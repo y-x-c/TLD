@@ -19,83 +19,52 @@
 #include "NNClassifier.h"
 #include "Learner.h"
 
+#include "TLDSystemStruct.h"
+
 using namespace std;
 using namespace cv;
 
 class Detector
 {
     friend class Learner;
-public:
-    struct tScanBB
-    {
-        Rect first;  //bb
-        float second;//overlap
-        char status;
-        
-        tScanBB(const Rect &_bb):first(_bb), second(-1), status(0){};
-        tScanBB(const Rect &_bb, const float _ol):first(_bb), second(_ol), status(0){};
-    };
-    
-    typedef vector<Rect> tRet;
-    typedef vector<tScanBB> tScanBBs;
-    typedef pair<Mat, bool> tTrainData;
-    typedef vector<tTrainData> tTrainDataSet;
-    
-    static const int minBBSize = 20;
-    constexpr static const float warpNoiseRange = 5;
-    constexpr static const float warpRandomBlur = true;
-    constexpr static const float warpScale = 0.1;
-    constexpr static const float warpAngle = 10. / 180 * CV_PI;
-    const bool cPos = true;
-    const bool cNeg = false;
-    constexpr static const float thGoodBB = 0.6;
-    constexpr static const float thBadBB = 0.2;
-    static const int thPosData = 10;
-    
-    static const char bbAC = 1;
-    static const char bbRejVar = 2;
-    static const char bbRejRF = 3;
-    static const char bbRejNN = 4;
-    
 private:
     RandomFernsClassifier rFClassifier;
     NNClassifier nNClassifier;
     
-    Mat img;
     Mat pattern;
-    Rect patternBB;
+    TYPE_DETECTOR_BB patternBB;
     int imgW, imgH;
     float patternVar;
     PatchGenerator patchGenerator;
-    tTrainDataSet trainDataSet;
+    TYPE_TRAIN_DATA_SET trainDataSet;
     
-    // return true if p1.x < p2.x and p1.y < p2.y
-    float overlap(const Rect &bb1, const Rect &bb2);
+    float overlap(const TYPE_DETECTOR_BB &bb1, const TYPE_DETECTOR_BB &bb2);
     
     // scanning-window grid
-    tScanBBs scanBBs;
+    TYPE_DETECTOR_SCANBBS scanBBs;
     void genScanBB();
     
-    void sortByOverlap(const Rect &bb, bool rand = false);
+    void sortByOverlap(const TYPE_DETECTOR_BB &bb, bool rand = false);
     
     void genWarped(const Mat &img, Mat &warped);
-    void genPosData(const Mat &img, tTrainDataSet &trainDataSet);
-    void genNegData(const Mat &img, tTrainDataSet &trainDataSet);
+    void genPosData(const Mat &img, TYPE_TRAIN_DATA_SET &trainDataSet);
+    void genNegData(const Mat &img, TYPE_TRAIN_DATA_SET &trainDataSet);
     
     void update();
     void train(const Mat &img, const Rect &patternBB);
     
 public:
-    Detector();
+    Detector(){}
     Detector(const Mat &img, const Rect &patternBB);
     
-    static bool scanBBCmp(const tScanBB &a, const tScanBB &b)
+    static bool scanBBCmp(const TYPE_DETECTOR_SCANBB &a, const TYPE_DETECTOR_SCANBB &b)
     {
         return a.second > b.second;
     }
     
-    void dectect(const Mat &img, tRet &ret);
+    void dectect(const Mat &img, TYPE_DETECTOR_RET &ret);
     
+    float calcSr(const Mat &img);
     float calcSc(const Mat &img);
     
     ~Detector();

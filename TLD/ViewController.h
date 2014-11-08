@@ -14,6 +14,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "VideoController.h"
+#include "TLDSystemStruct.h"
 
 using namespace std;
 using namespace cv;
@@ -35,13 +36,13 @@ public:
     
     ~ViewController();
     
-    void drawCircles(const vector<Point2f> &pts, Scalar color = Scalar(255, 255, 255), int radius = 3);
+    void drawCircles(const vector<Point2f> &pts, const Scalar &color = COLOR_WHITE, int radius = 3);
     
-    void drawLines(const vector<Point2f> &firstPts, const vector<Point2f> &secondPts, Scalar color = Scalar(78, 86, 255));
+    void drawLines(const vector<Point2f> &firstPts, const vector<Point2f> &secondPts, const Scalar &color = COLOR_RED, int thickness = 1);
     
     void showCache(const string &winName = string());
     
-    void drawRect(const Rect_<float> &rect);
+    void drawRect(const Rect_<float> &rect, const Scalar &color = COLOR_WHITE, int thickness = 1);
     
     Rect_<float> getRect();
     

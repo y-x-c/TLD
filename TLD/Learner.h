@@ -12,7 +12,9 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
+#include "TLDSystemStruct.h"
 #include "Detector.h"
+
 class Detector;
 
 using namespace std;
@@ -20,14 +22,11 @@ using namespace cv;
 
 class Learner
 {
-public:
-    static const int nWarped = 10;
-    
 private:
-    Detector &detector;
+    Detector *detector;
     
 public:
-    
+    Learner():detector(NULL){}
     Learner(Detector *detector);
     
     ~Learner();

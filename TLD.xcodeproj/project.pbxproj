@@ -61,6 +61,7 @@
 		B98256CB1A0CF18100FEDB94 /* TLD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TLD.h; sourceTree = "<group>"; };
 		B98256CD1A0CF19E00FEDB94 /* Learner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Learner.cpp; sourceTree = "<group>"; };
 		B98256CE1A0CF19E00FEDB94 /* Learner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Learner.h; sourceTree = "<group>"; };
+		B98256D91A0E1B7100FEDB94 /* TLDSystemStruct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TLDSystemStruct.h; sourceTree = "<group>"; };
 		B98AEAE91A08B8CA006F7A7A /* VideoController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoController.cpp; sourceTree = "<group>"; };
 		B98AEAEA1A08B8CA006F7A7A /* VideoController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoController.h; sourceTree = "<group>"; };
 		B98AEAEB1A08B8CA006F7A7A /* ViewController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewController.cpp; sourceTree = "<group>"; };
@@ -196,6 +197,7 @@
 		B9E510821A088B950069B795 /* TLD */ = {
 			isa = PBXGroup;
 			children = (
+				B98256D91A0E1B7100FEDB94 /* TLDSystemStruct.h */,
 				B9E510831A088B950069B795 /* main.cpp */,
 				B98256CA1A0CF18100FEDB94 /* TLD.cpp */,
 				B98256CB1A0CF18100FEDB94 /* TLD.h */,

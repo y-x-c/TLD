@@ -9,9 +9,12 @@
 #include "TLD.h"
 
 TLD::TLD(const Mat &img, const Rect &_bb):
-detector(img, _bb), learner(&detector), bb(_bb)
+bb(_bb)
 {
-    cvtColor(img, nextImg, CV_BGR2GRAY);
+    setNextFrame(img);
+    
+    detector = Detector(nextImg, _bb);
+    learner = Learner(&detector);
 }
 
 TLD::~TLD()
@@ -24,61 +27,91 @@ void TLD::setNextFrame(const cv::Mat &frame)
     cv::swap(prevImg, nextImg);
     
     cvtColor(frame, nextImg, CV_BGR2GRAY);
+    GaussianBlur(nextImg, nextImg, Size(9, 9), 1.5);
 }
 
-void TLD::track()
+void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
 {
+    ///// debug
+    bbTrack = BB_ERROR;
+    bbDetect.clear();
+    /////
+    
     tracker = new MedianFlow(prevImg, nextImg);
     
+    //track
     int trackerStatus;
-    Rect trackBB = tracker->trackBox(bb, trackerStatus);
+    Rect trackerRet = tracker->trackBox(bb, trackerStatus);
     
-    Detector::tRet ret;
+    //detect
+    TYPE_DETECTOR_RET detectorRet;
+    detector.dectect(nextImg, detectorRet);
     
-    detector.dectect(nextImg, ret);
-    
-    // integrator
-    float maxSc = 0;
+    //integrate
+    float maxSc = -1;
     Rect maxBB;
     
-    for(auto &bb : ret)
+    
+    ////// just test
+    int tlx = max(0, trackerRet.tl().x), tly = max(0, trackerRet.tl().y);
+    int brx = min(nextImg.cols, trackerRet.br().x), bry = min(nextImg.rows, trackerRet.br().y);
+    Rect _rect(tlx, tly, brx - tlx, bry - tly);
+    
+    if(trackerStatus == MF_TRACK_SUCCESS && detector.calcSc(nextImg(_rect)) < 0.4)
     {
-        float Sc = detector.calcSc(nextImg(bb));
+        trackerStatus = !trackerStatus;
+    }
+    //////
+    
+    if(trackerStatus != MF_TRACK_SUCCESS && detectorRet.size() == 0)
+    {
+        cerr << "Not visible." << endl;
+        bb = BB_ERROR;
+        
+        delete tracker;
+        return;
+    }
+    
+    if(trackerStatus == MF_TRACK_SUCCESS)
+    {
+        int tlx = max(0, trackerRet.tl().x), tly = max(0, trackerRet.tl().y);
+        int brx = min(nextImg.cols, trackerRet.br().x), bry = min(nextImg.rows, trackerRet.br().y);
+        Rect _rect(tlx, tly, brx - tlx, bry - tly);
+        
+        float Sc = detector.calcSc(nextImg(_rect));
+        cerr << "track bb Sc : " << Sc << " Sr : " << detector.calcSr(nextImg(_rect)) <<  endl;
         if(Sc > maxSc)
         {
             maxSc = Sc;
-            maxBB = bb;
+            maxBB = trackerRet;
         }
+        
+        bbTrack = trackerRet;
     }
     
-    if(trackerStatus == MedianFlow::MEDIANFLOW_TRACK_SUCCESS)
+    if(detectorRet.size())
     {
-        Point2d tl(max(0, trackBB.tl().x), max(0, trackBB.tl().y));
-        Point2d br(min(prevImg.cols, trackBB.br().x), min(prevImg.rows, trackBB.br().y));
-    
-        float Sc = detector.calcSc(nextImg(Rect(tl, br)));
-        if(Sc > maxSc)
+        for(auto &bb : detectorRet)
         {
-            maxSc = Sc;
-            maxBB = trackBB;
-            cerr << "Choose trace result" << endl;
-        }
-        else
-        {
-            cerr << "Choose detection result" << endl;
+            float Sc = detector.calcSc(nextImg(bb));
+            cerr << "detect bb Sc : " << Sc << " Sr : " << detector.calcSr(nextImg(bb)) << endl;
+            if(Sc > maxSc)
+            {
+                maxSc = Sc;
+                maxBB = bb;
+            }
+            
+            bbDetect.push_back(bb);
         }
     }
-    else
+    
+    if(detector.calcSr(nextImg(maxBB == bbTrack ? _rect : maxBB)) >= 0.5)
     {
-        if(ret.size() == 0)
-            cerr << "Not visible." << endl;
-        else
-            cerr << "Choose detection result" << endl;
+        learner.learn(nextImg, maxBB);
     }
-    
-    learner.learn(nextImg, maxBB);
+
     bb = maxBB;
-    
+
     delete tracker;
 }
 

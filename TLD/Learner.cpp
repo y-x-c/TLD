@@ -9,7 +9,7 @@
 #include "Learner.h"
 
 Learner::Learner(Detector *_detector):
-    detector(*_detector)
+    detector(_detector)
 {
     
 }
@@ -22,37 +22,55 @@ Learner::~Learner()
 void Learner::learn(const Mat &img, const Rect &ret)
 {
     cerr << "Start learning" << endl;
+ 
+    int imgW = img.cols, imgH = img.rows;
+    Rect rImg(0, 0, imgW, imgH);
+    if(!(rImg.contains(ret.tl()) && rImg.contains(ret.br())))
+    {
+        cerr << "Learning exited because bb is out of image." << endl;
+        return;
+    }
     
-    cerr << "Sort bounding boxes." << endl;
-    detector.sortByOverlap(ret);
-    detector.trainDataSet.clear();
+    detector->sortByOverlap(ret, false);
+    detector->trainDataSet.clear();
     
     //P-expert
-    cerr << "Run P-expert" << endl;
-    for(int i = 0; i < 10; i++)
+    int pCount = 0;
+    for(int i = 0; i < LEARNER_N_GOOD_BB; i++)
     {
-        for(int j = 0; j < nWarped; j++)
+        if(detector->calcSr(img(detector->scanBBs[i].first)) < LEARNER_TH_GOODBB_SR) continue;
+        
+        for(int j = 0; j < LEARNER_N_WARPED; j++)
         {
-            Mat warped;
-            detector.genWarped(img(detector.scanBBs[i].first), warped);
+            pCount++;
             
-            Detector::tTrainData trainData(make_pair(warped, detector.cPos));
-            detector.trainDataSet.push_back(trainData);
+            Mat warped;
+            detector->genWarped(img(detector->scanBBs[i].first), warped);
+            
+            TYPE_TRAIN_DATA trainData(make_pair(warped, CLASS_POS));
+            detector->trainDataSet.push_back(trainData);
         }
     }
     
     //N-expert
-    cerr << "Run N-expert" << endl;
-    for(int i = nWarped; i < detector.scanBBs.size(); i++)
+    int nCount = 0;
+    for(int i = LEARNER_N_GOOD_BB; i < detector->scanBBs.size(); i++)
     {
-        if(detector.scanBBs[i].status == Detector::bbRejNN)
+        if(detector->scanBBs[i].status == DETECTOR_REJECT_NN)
         {
-            Detector::tTrainData trainData(make_pair(img(detector.scanBBs[i].first), detector.cNeg));
-            detector.trainDataSet.push_back(trainData);
+            nCount++;
+            
+            TYPE_TRAIN_DATA trainData(make_pair(img(detector->scanBBs[i].first), CLASS_NEG));
+            detector->trainDataSet.push_back(trainData);
         }
     }
     
-    detector.update();
+    cerr << "Generate " << pCount << " positive sample(s) and " << nCount << " negative sample(s)." << endl;
+    
+    cerr << "Update detector" << endl;
+    detector->update();
     
     cerr << "Finish learning" << endl;
+    
+    detector->nNClassifier.showModel();
 }

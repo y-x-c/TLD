@@ -39,5 +39,5 @@ float VarClassifier::getVar(const Rect &bb)
 
 bool VarClassifier::getClass(const Rect &bb, float patternVar)
 {
-    return getVar(bb) >= patternVar * varFactor;
+    return getVar(bb) >= patternVar * VAR_FACTOR;
 }

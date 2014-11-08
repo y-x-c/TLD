@@ -15,7 +15,7 @@ ViewController::~ViewController()
 }
 
 ViewController::ViewController(VideoController *videoController):
-    retWindowName("TLD")
+    retWindowName("Median Flow")
 {
     this->videoController = videoController;
 }
@@ -27,16 +27,16 @@ void ViewController::refreshCache()
     videoController->getCurrFrame().copyTo(cache);
 }
 
-void ViewController::drawLines(const vector<Point2f> &firstPts, const vector<Point2f> &secondPts, Scalar color)
+void ViewController::drawLines(const vector<Point2f> &firstPts, const vector<Point2f> &secondPts, const Scalar &color, int thickness)
 {
     for(int i = 0; i < firstPts.size(); i++)
     {
         if(secondPts[i] == Point2f(-1, -1)) continue;
-        line(cache, firstPts[i], secondPts[i], color);
+        line(cache, firstPts[i], secondPts[i], color, thickness);
     }
 }
 
-void ViewController::drawCircles(const vector<Point2f> &pts, Scalar color, int radius)
+void ViewController::drawCircles(const vector<Point2f> &pts, const Scalar &color, int radius)
 {
     for(int i = 0; i < pts.size(); i++)
     {
@@ -54,9 +54,9 @@ void ViewController::showCache(const string &winName)
     waitKey(1);
 }
 
-void ViewController::drawRect(const Rect_<float> &rect)
+void ViewController::drawRect(const Rect_<float> &rect, const Scalar &color, int thickness)
 {
-    rectangle(cache, rect, Scalar(255, 255, 255));
+    rectangle(cache, rect, color, thickness);
 }
 
 void ViewController::onMouse(int event, int x, int y, int flags, void* param)
@@ -127,7 +127,7 @@ Rect_<float> ViewController::getRect()
         {
             refreshCache();
             drawRect(rect);
-            showCache(string(retWindowName));
+            showCache(retWindowName);
         }
     }
     else

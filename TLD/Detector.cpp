@@ -9,10 +9,10 @@
 #include "Detector.h"
 
 
-Detector::Detector(const Mat &_img, const Rect &_patternBB):
-    rFClassifier(RandomFernsClassifier(10, 13))
+Detector::Detector(const Mat &img, const Rect &_patternBB):
+    rFClassifier(RandomFernsClassifier(DETECTOR_NFERNS, DETECTOR_NLEAVES))
 {
-    cvtColor(_img, img, CV_BGR2GRAY);
+    // assert : img.type() == CV_8U
     
     patternBB = _patternBB;
     
@@ -26,7 +26,7 @@ Detector::Detector(const Mat &_img, const Rect &_patternBB):
     patternVar = pow(dev.val[0], 2.);
     cerr << "Variance of pattern is " << patternVar << endl;
     
-    patchGenerator = PatchGenerator(0, 0, warpNoiseRange, warpRandomBlur, 1. - warpScale, 1. + warpScale, -warpAngle, warpAngle, -warpAngle, warpAngle);
+    patchGenerator = PatchGenerator(0, 0, DETECTOR_WARP_NOISE, DETECTOR_WARP_BLUR, 1. - DETECTOR_WARP_SCALE, 1. + DETECTOR_WARP_SCALE, -DETECTOR_WARP_ANGLE, DETECTOR_WARP_ANGLE, -DETECTOR_WARP_ANGLE, DETECTOR_WARP_ANGLE);
     
     train(img, patternBB);
 }
@@ -36,7 +36,7 @@ Detector::~Detector()
     
 }
 
-void Detector::train(const Mat &img, const Rect &patternBB)
+void Detector::train(const Mat &img, const TYPE_DETECTOR_BB &patternBB)
 {
     genScanBB();
     
@@ -60,7 +60,7 @@ void Detector::update()
     nNClassifier.train(trainDataSet);
 }
 
-float Detector::overlap(const Rect &bb1, const Rect &bb2)
+float Detector::overlap(const TYPE_DETECTOR_BB &bb1, const TYPE_DETECTOR_BB &bb2)
 {
     int tlx, tly, brx, bry;
 
@@ -78,7 +78,7 @@ float Detector::overlap(const Rect &bb1, const Rect &bb2)
     return area_n / area_u;
 }
 
-void Detector::sortByOverlap(const Rect &bb, bool rand)
+void Detector::sortByOverlap(const TYPE_DETECTOR_BB &bb, bool rand)
 {
     for(auto &it : scanBBs)
     {
@@ -91,7 +91,7 @@ void Detector::sortByOverlap(const Rect &bb, bool rand)
     {
         auto it = scanBBs.begin();
     
-        for(; it != scanBBs.end() && it->second > thBadBB; it++) ;
+        for(; it != scanBBs.end() && it->second > DETECTOR_TH_BAD_BB; it++) ;
     
         random_shuffle(it, scanBBs.end());
     }
@@ -101,8 +101,8 @@ void Detector::sortByOverlap(const Rect &bb, bool rand)
 void Detector::genScanBB()
 {
     int minWH = min(patternBB.width, patternBB.height);
-    int width = patternBB.width * ((float)minBBSize / minWH);
-    int height = patternBB.height * ((float)minBBSize / minWH);
+    int width = patternBB.width * ((float)DETECTOR_MIN_BB_SIZE / minWH);
+    int height = patternBB.height * ((float)DETECTOR_MIN_BB_SIZE / minWH);
     
     for(; width <= imgW && height <= imgH; width *= 1.2, height *= 1.2)
     {
@@ -112,15 +112,15 @@ void Detector::genScanBB()
             for(int y = 0; y + height <= imgH; y += dy)
             {
                 Rect bb(x, y, width, height);
-                scanBBs.push_back(tScanBB(bb, -1));
+                scanBBs.push_back(TYPE_DETECTOR_SCANBB(bb, -1));
             }
             
             Rect bb(x, imgH - height, width, height);
-            scanBBs.push_back(tScanBB(bb, -1));
+            scanBBs.push_back(TYPE_DETECTOR_SCANBB(bb, -1));
         }
         
         Rect bb(imgW - width, imgH - height, width, height);
-        scanBBs.push_back(tScanBB(bb, -1));
+        scanBBs.push_back(TYPE_DETECTOR_SCANBB(bb, -1));
     }
     
     sortByOverlap(patternBB, true);
@@ -131,17 +131,17 @@ void Detector::genWarped(const Mat &img, Mat &warped)
     patchGenerator(img, Point(img.cols / 2, img.rows / 2), warped, img.size(), theRNG());
 }
 
-void Detector::genPosData(const Mat &img, Detector::tTrainDataSet &trainDataSet)
+void Detector::genPosData(const Mat &img, TYPE_TRAIN_DATA_SET &trainDataSet)
 {
     int count = 0;
-    for(int i = 0; i < thPosData && scanBBs[i].second >= thGoodBB; i++)
+    for(int i = 0; i < DETECTOR_N_GOOD_BB && scanBBs[i].second >= DETECTOR_TH_GOOD_BB; i++)
     {
-        for(int j = 0; j < 20; j++)
+        for(int j = 0; j < DETECTOR_N_WARPED; j++)
         {
             Mat warped;
             genWarped(img(scanBBs[i].first), warped);
 
-            tTrainData trainData(make_pair(warped, cPos));
+            TYPE_TRAIN_DATA trainData(make_pair(warped, CLASS_POS));
             trainDataSet.push_back(trainData);
             
             count++;
@@ -151,16 +151,16 @@ void Detector::genPosData(const Mat &img, Detector::tTrainDataSet &trainDataSet)
     cerr << "Generate " << count << " positive samples." << endl;
 }
 
-void Detector::genNegData(const Mat &img, Detector::tTrainDataSet &trainDataSet)
+void Detector::genNegData(const Mat &img, TYPE_TRAIN_DATA_SET &trainDataSet)
 {
     int count = 0;
     VarClassifier varClassifier(img);
     
-    for(auto it = scanBBs.end() - 1; it >= scanBBs.begin() && (*it).second <= thBadBB; it--)
+    for(auto it = scanBBs.end() - 1; it >= scanBBs.begin() && (*it).second <= DETECTOR_TH_BAD_BB; it--)
     {
-        if(varClassifier.getClass(it->first, patternVar) == cNeg) continue;
+        if(varClassifier.getClass(it->first, patternVar) == CLASS_NEG) continue;
      
-        tTrainData trainData(make_pair(img(it->first), cNeg));
+        TYPE_TRAIN_DATA trainData(make_pair(img(it->first), CLASS_NEG));
         //tTrainData trainData(make_pair(img(it->first).clone(), cNeg));
         trainDataSet.push_back(trainData);
         
@@ -170,14 +170,12 @@ void Detector::genNegData(const Mat &img, Detector::tTrainDataSet &trainDataSet)
     cerr << "Generate " << count << " negative samples." << endl;
 }
 
-void Detector::dectect(const Mat &_img, tRet &ret)
+void Detector::dectect(const Mat &img, TYPE_DETECTOR_RET &ret)
 {
     cerr << "Start detecting." << endl;
-    
+
     if(!ret.empty()) ret.clear();
     
-    Mat img(_img);
-    //cvtColor(_img, img, CV_BGR2GRAY);
     VarClassifier varClassifier(img);
     
     int count = 0;
@@ -186,50 +184,46 @@ void Detector::dectect(const Mat &_img, tRet &ret)
     {
         Rect &bb = scanBB.first;
         count++;
-        //cerr << endl << "Bounding box #" << count << endl;
         
-        if(varClassifier.getClass(bb, patternVar) == cPos)
+        if(varClassifier.getClass(bb, patternVar) == CLASS_POS)
         {
-            //cerr << "Accepted by Variance Classifier" << endl;
             acVar++;
-            if(rFClassifier.getClass(img(bb)) == cPos)
+            if(rFClassifier.getClass(img(bb)) == CLASS_POS)
             {
-                //cerr << "Accepted by Random Ferns Classifier" << endl;
                 acRF++;
-                //imshow("img(bb)", img(bb));
-                //waitKey();
                 
                 if(nNClassifier.getClass(img(bb)))
                 {
-                    //cerr << "Accepted by Nearest Neighbor Classifier" << endl;
                     ret.push_back(bb);
-                    //cerr << "Find " << ret.size() << " object(s)" << endl;
-                    scanBB.status = bbAC;
+
+                    scanBB.status = DETECTOR_ACCEPTED;
                 }
                 else
                 {
-                    //cerr << "Rejected by Nearest Neighbor Classifier" << endl;
-                    scanBB.status = bbRejNN;
+                    scanBB.status = DETECTOR_REJECT_NN;
                 }
             }
             else
             {
-                //cerr << "Rejected by Random Ferns Classifier" << endl;
-                scanBB.status = bbRejRF;
+                scanBB.status = DETECTOR_REJECT_RF;
             }
         }
         else
         {
-            //cerr << "Rejected by Variance Classifier" << endl;
-            scanBB.status = bbRejVar;
+            scanBB.status = DETECTOR_REJECT_VAR;
         }
     }
     
-    cerr << "After Variance Classifier : " << acVar << " bounding boxes." << endl;
-    cerr << "After Random Ferns Classifier: " << acRF << " bounding boxes." << endl;
-    cerr << "After Nearest Neighbor Classifier " << ret.size() << " bounding boxes." << endl;
+    cerr << "- After Variance Classifier : " << acVar << " bounding boxes." << endl;
+    cerr << "- After Random Ferns Classifier: " << acRF << " bounding boxes." << endl;
+    cerr << "- After Nearest Neighbor Classifier " << ret.size() << " bounding boxes." << endl;
     
     cerr << "Finish detecting." << endl;
+}
+
+float Detector::calcSr(const cv::Mat &img)
+{
+    return nNClassifier.calcSr(img);
 }
 
 float Detector::calcSc(const cv::Mat &img)

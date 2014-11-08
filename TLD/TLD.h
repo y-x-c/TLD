@@ -16,6 +16,8 @@
 #include "Detector.h"
 #include "Learner.h"
 
+#include "TLDSystemStruct.h"
+
 using namespace std;
 using namespace cv;
 
@@ -36,7 +38,7 @@ public:
     ~TLD();
     
     void setNextFrame(const Mat &frame);
-    void track();
+    void track(Rect &bbTrack, vector<Rect> &bbDetect);
     
     Rect getBB();
     

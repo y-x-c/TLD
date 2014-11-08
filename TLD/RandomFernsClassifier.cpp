@@ -20,15 +20,15 @@ RandomFernsClassifier::RandomFernsClassifier(int _nFerns, int _nLeaves)
     
     for(int i = 0; i < nFerns; i++)
     {
-        counter.push_back(tPNCounter(pow(2, nLeaves), make_pair(0, 0)));
+        counter.push_back(TYPE_FERN_PNCOUNTER(pow(2, nLeaves), make_pair(0, 0)));
     }
     
     for(int i = 0; i < nFerns; i++)
     {
-        vector<tLeaf> leaves;
+        vector<TYPE_FERN_LEAF> leaves;
         for(int j = 0; j < nLeaves; j++)
         {
-            tLeaf leaf;
+            TYPE_FERN_LEAF leaf;
             leaf.first = Point2f(float(theRNG()), float(theRNG()));
             leaf.second = Point2f(float(theRNG()), float(theRNG()));
             
@@ -44,19 +44,17 @@ RandomFernsClassifier::~RandomFernsClassifier()
     
 }
 
-void RandomFernsClassifier::update(const Mat &_img, bool c, float p)
+void RandomFernsClassifier::update(const Mat &img, bool c, float p)
 {
-    Mat img;
-    GaussianBlur(_img, img, Size(3, 3), 0);
-    
-    //imshow("ttt", img);
-    //waitKey();
+    // Do gaussian blur in whole image to have a high preformance
+    //Mat img;
+    //GaussianBlur(_img, img, Size(3, 3), 0);
     
     if(p == -1.) p = getPosteriors(img);
     
-    if(c == cPos)
+    if(c == CLASS_POS)
     {
-        if(p <= pTh)
+        if(p <= FERN_TH_POS)
         {
             //static int count = 0;
             //cerr << ++count << endl;
@@ -70,7 +68,7 @@ void RandomFernsClassifier::update(const Mat &_img, bool c, float p)
     }
     else
     {
-        if(p >= nTh)
+        if(p >= FERN_TH_NEG)
         {
             for(int iFern = 0; iFern < nFerns; iFern++)
             {
@@ -84,8 +82,6 @@ void RandomFernsClassifier::update(const Mat &_img, bool c, float p)
 
 int RandomFernsClassifier::getCode(const Mat &img, int idx)
 {
-    //cerr << "code at fern " << idx << ": ";
-    assert(img.type() == CV_8U);
     int code = 0;
     for(int i = 0; i < nLeaves; i++)
     {
@@ -126,31 +122,28 @@ float RandomFernsClassifier::getPosteriors(const Mat &img)
     
     float averageP = sumP / nFerns;
     
-    // debug
-    //if(averageP > 0.5){
-    //    cerr << averageP << endl;
-    //    imshow("p", img);
-    //    waitKey();
-    //}
-    //imshow("p", img);
-    //waitKey();
-    // end debug
-    
     return averageP;
 }
 
-bool RandomFernsClassifier::getClass(const Mat &_img)
+bool RandomFernsClassifier::getClass(const Mat &img)
 {
-    Mat img;
-    GaussianBlur(_img, img, Size(3, 3), 0);
+    // assert : _img.type() == CV_8U
     
-    return getPosteriors(img) >= pTh;
+    // Do gaussian blur in whole image to have a high preformance
+    //Mat img;
+    //GaussianBlur(_img, img, Size(3, 3), 0);
+    
+    if(getPosteriors(img) >= FERN_TH_POS)
+        return CLASS_POS;
+    else
+        return CLASS_NEG;
 }
 
-void RandomFernsClassifier::train(const tTrainDataSet &trainDataSet)
+void RandomFernsClassifier::train(const TYPE_TRAIN_DATA_SET &trainDataSet)
 {
     for(auto trainData : trainDataSet)
     {
+        // assert : trainData.first.type() == CV_8U
         update(trainData.first, trainData.second);
     }
 }
