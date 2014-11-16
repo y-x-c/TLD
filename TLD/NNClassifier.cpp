@@ -161,26 +161,34 @@ void NNClassifier::trainInit(const TYPE_TRAIN_DATA_SET &trainDataSet)
         if(c == CLASS_POS && pPatches.size() < NN_MODEL_SIZE) pPatches.push_back(patch);
         if(c == CLASS_NEG && nPatches.size() < NN_MODEL_SIZE) nPatches.push_back(patch);
         
+        // debug
+        //addToNewSamples(patch, c);
+        // end debug
+        
         if(pPatches.size() >= NN_MODEL_SIZE && nPatches.size() >= NN_MODEL_SIZE) break;
     }
     
     // can be improved
-    int nCount = 0;
-    for(auto &trainData : trainDataSet)
-    {
-        if(trainData.second == CLASS_NEG)
-        {
-            float Sr = calcSr(trainData.first);
-            if(Sr > thPos)
-            {
-                thPos = Sr;
-                cerr << "Increase thPos to " << thPos << endl;
-                // update(patch, cNeg);
-            }
-            
-            if(++nCount >= NN_MODEL_SIZE) break;
-        }
-    }
+//    int nCount = 0;
+//    for(auto &trainData : trainDataSet)
+//    {
+//        if(trainData.second == CLASS_NEG)
+//        {
+//            float Sr = calcSr(trainData.first);
+//            if(Sr > thPos)
+//            {
+//                thPos = Sr;
+//                cerr << "Increase thPos to " << thPos << endl;
+//                // update(patch, cNeg);
+//            }
+//            
+//            if(++nCount >= NN_MODEL_SIZE) break;
+//        }
+//    }
+    
+    // debug
+    //showModel();
+    //
 }
 
 void NNClassifier::addToNewSamples(const Mat &patch, const int c)
@@ -248,13 +256,25 @@ bool NNClassifier::getClass(const Mat &img)
 {
     float Sr = calcSr(img);
 
+//    // debug    
+//    if(Sr >= NN_TH_POS)
+//    {
+//
+//        Mat imgs = img.clone();
+//        cvtColor(imgs, imgs, CV_GRAY2BGR);
+//        imshow("NN_POS", imgs);
+//        cerr << "Sr: " << Sr << endl;
+//        waitKey();
+//    }
+//    // end debug
+    
     return  Sr > thPos ? CLASS_POS : CLASS_NEG;
 }
 
 void NNClassifier::showModel()
 {
-    imshow("new positive samples", newSamplesP);
-    imshow("new negative samples", newSamplesN);
+    if(newSamplesP.cols) imshow("new positive samples", newSamplesP);
+    if(newSamplesN.cols) imshow("new negative samples", newSamplesN);
 
     waitKey(1);
 }

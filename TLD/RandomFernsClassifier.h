@@ -26,6 +26,7 @@ private:
     
     void update(const Mat &img, bool c, float p = -1.);
     
+    float getRNG();
     int getCode(const Mat &img, int idx);
     float getPosteriors(const Mat &img);
     

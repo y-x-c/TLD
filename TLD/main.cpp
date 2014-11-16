@@ -279,19 +279,32 @@ void testTLD()
         
         Rect bbTrack;
         vector<Rect> bbDetect;
-        
+      
         tld.track(bbTrack, bbDetect);
         
+//        int count = 0;
+//        for(auto &sbb : tld.detector.scanBBs)
+//        {
+//            viewController.refreshCache();
+//            viewController.drawRect(tld.getBB(), COLOR_GREEN, 2);
+//            viewController.drawRect(sbb.first, COLOR_PURPLE);
+//            viewController.showCache();
+//            waitKey();
+//            
+//            if(++count == 10) break;
+//        }
+        
         viewController.refreshCache();
-        viewController.drawRect(tld.getBB(), COLOR_GREEN, 2);
+        viewController.drawRect(tld.getBB(), tld.useTrack == -1 ? COLOR_YELLOW : COLOR_GREEN, 2);
 //        for(auto &bb : bbDetect)
 //        {
 //            viewController.drawRect(bb, COLOR_YELLOW);
 //        }
-        viewController.drawRect(bbTrack, COLOR_RED);
+//        viewController.drawRect(bbTrack, COLOR_GREEN);
         
         viewController.showCache();
-        waitKey();
+        waitKey(1);
+        cerr << endl << endl;
     }
 }
 

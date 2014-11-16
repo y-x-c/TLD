@@ -24,6 +24,9 @@ using namespace cv;
 class TLD
 {
 private:
+    //debug
+public:
+    // end debug
     MedianFlow *tracker;
     Detector detector;
     Learner learner;
@@ -32,6 +35,8 @@ private:
     Rect bb;
     
 public:
+    
+    int useTrack;
     
     TLD(const Mat &img, const Rect &bb);
     

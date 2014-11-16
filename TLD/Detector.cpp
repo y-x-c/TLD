@@ -95,7 +95,6 @@ void Detector::sortByOverlap(const TYPE_DETECTOR_BB &bb, bool rand)
     
         random_shuffle(it, scanBBs.end());
     }
-
 }
 
 void Detector::genScanBB()
@@ -106,6 +105,7 @@ void Detector::genScanBB()
     
     for(; width <= imgW && height <= imgH; width *= 1.2, height *= 1.2)
     {
+        //int dx = width * 0.05, dy = height * 0.05;
         int dx = width * 0.1, dy = height * 0.1;
         for(int x = 0; x + width <= imgW; x += dx)
         {

@@ -72,6 +72,9 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
         return;
     }
     
+    //int useTrack = 0;
+    useTrack = 0;
+    
     if(trackerStatus == MF_TRACK_SUCCESS)
     {
         int tlx = max(0, trackerRet.tl().x), tly = max(0, trackerRet.tl().y);
@@ -84,6 +87,7 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
         {
             maxSc = Sc;
             maxBB = trackerRet;
+            useTrack = 1;
         }
         
         bbTrack = trackerRet;
@@ -99,17 +103,21 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
             {
                 maxSc = Sc;
                 maxBB = bb;
+                useTrack = -1;
             }
             
             bbDetect.push_back(bb);
         }
     }
     
-    if(detector.calcSr(nextImg(maxBB == bbTrack ? _rect : maxBB)) >= 0.5)
-    {
+    //if(detector.calcSr(nextImg(maxBB == bbTrack ? _rect : maxBB)) >= 0.5)
+    //{
         learner.learn(nextImg, maxBB);
-    }
+    //}
 
+    if(useTrack == -1) cerr << "Use detector result." << endl;
+    if(useTrack == 1) cerr << "Use tracker result." << endl;
+    
     bb = maxBB;
 
     delete tracker;

@@ -29,8 +29,8 @@ RandomFernsClassifier::RandomFernsClassifier(int _nFerns, int _nLeaves)
         for(int j = 0; j < nLeaves; j++)
         {
             TYPE_FERN_LEAF leaf;
-            leaf.first = Point2f(float(theRNG()), float(theRNG()));
-            leaf.second = Point2f(float(theRNG()), float(theRNG()));
+            leaf.first = Point2f(getRNG(), getRNG());
+            leaf.second = Point2f(getRNG(), getRNG());
             
             leaves.push_back(leaf);
         }
@@ -42,6 +42,11 @@ RandomFernsClassifier::RandomFernsClassifier(int _nFerns, int _nLeaves)
 RandomFernsClassifier::~RandomFernsClassifier()
 {
     
+}
+
+float RandomFernsClassifier::getRNG()
+{
+    return (float)theRNG() * 0.8 + 0.1;
 }
 
 void RandomFernsClassifier::update(const Mat &img, bool c, float p)

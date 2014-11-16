@@ -38,7 +38,15 @@ void Learner::learn(const Mat &img, const Rect &ret)
     int pCount = 0;
     for(int i = 0; i < LEARNER_N_GOOD_BB; i++)
     {
-        if(detector->calcSr(img(detector->scanBBs[i].first)) < LEARNER_TH_GOODBB_SR) continue;
+        //if(detector->nNClassifier.getClass(img(detector->scanBBs[i].first)) == CLASS_POS) continue;
+        if(detector->scanBBs[i].status == DETECTOR_ACCEPTED) continue;
+        
+        //// debug
+        Mat img2 = img(detector->scanBBs[i].first).clone();
+        cvtColor(img2, img2, CV_GRAY2BGR);
+        imshow("debug", img2);
+        waitKey();
+        //// end debug
         
         for(int j = 0; j < LEARNER_N_WARPED; j++)
         {
@@ -56,11 +64,12 @@ void Learner::learn(const Mat &img, const Rect &ret)
     int nCount = 0;
     for(int i = LEARNER_N_GOOD_BB; i < detector->scanBBs.size(); i++)
     {
-        if(detector->scanBBs[i].status == DETECTOR_REJECT_NN)
+        TYPE_DETECTOR_SCANBB &sbb = detector->scanBBs[i];
+        if(sbb.second < LEARNER_TH_OL && (sbb.status != DETECTOR_REJECT_RF || sbb.status != DETECTOR_REJECT_VAR))
         {
             nCount++;
             
-            TYPE_TRAIN_DATA trainData(make_pair(img(detector->scanBBs[i].first), CLASS_NEG));
+            TYPE_TRAIN_DATA trainData(make_pair(img(sbb.first), CLASS_NEG));
             detector->trainDataSet.push_back(trainData);
         }
     }

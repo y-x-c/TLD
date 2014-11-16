@@ -28,6 +28,9 @@ class Detector
 {
     friend class Learner;
 private:
+    //debug
+public:
+    //end debug
     RandomFernsClassifier rFClassifier;
     NNClassifier nNClassifier;
     
