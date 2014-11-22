@@ -273,6 +273,8 @@ bool NNClassifier::getClass(const Mat &img)
 
 void NNClassifier::showModel()
 {
+    cerr << "Positive samples : " << pPatches.size() << " Negative samples : " << nPatches.size() << endl;
+    
     if(newSamplesP.cols) imshow("new positive samples", newSamplesP);
     if(newSamplesN.cols) imshow("new negative samples", newSamplesN);
 

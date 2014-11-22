@@ -75,6 +75,8 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
     //int useTrack = 0;
     useTrack = 0;
     
+    // 对于track结果超出边界的处理
+    
     if(trackerStatus == MF_TRACK_SUCCESS)
     {
         int tlx = max(0, trackerRet.tl().x), tly = max(0, trackerRet.tl().y);
@@ -110,10 +112,14 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
         }
     }
     
-    //if(detector.calcSr(nextImg(maxBB == bbTrack ? _rect : maxBB)) >= 0.5)
-    //{
-        learner.learn(nextImg, maxBB);
-    //}
+    if(detector.calcSc(nextImg(maxBB == bbTrack ? _rect : maxBB)) >= 0.5)
+    {
+        //learner.learn(nextImg, maxBB);
+    }
+    else
+    {
+        cerr << "Not learning because change is too fast." << endl;
+    }
 
     if(useTrack == -1) cerr << "Use detector result." << endl;
     if(useTrack == 1) cerr << "Use tracker result." << endl;

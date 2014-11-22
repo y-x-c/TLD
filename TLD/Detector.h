@@ -39,6 +39,7 @@ public:
     int imgW, imgH;
     float patternVar;
     PatchGenerator patchGenerator;
+    PatchGenerator updatePatchGenerator;
     TYPE_TRAIN_DATA_SET trainDataSet;
     
     float overlap(const TYPE_DETECTOR_BB &bb1, const TYPE_DETECTOR_BB &bb2);
@@ -50,6 +51,7 @@ public:
     void sortByOverlap(const TYPE_DETECTOR_BB &bb, bool rand = false);
     
     void genWarped(const Mat &img, Mat &warped);
+    void genUpdateWarped(const Mat &img, Mat &warped);
     void genPosData(const Mat &img, TYPE_TRAIN_DATA_SET &trainDataSet);
     void genNegData(const Mat &img, TYPE_TRAIN_DATA_SET &trainDataSet);
     
@@ -69,6 +71,7 @@ public:
     
     float calcSr(const Mat &img);
     float calcSc(const Mat &img);
+    float getVar(const Mat &img);
     
     ~Detector();
 };

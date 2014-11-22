@@ -46,7 +46,8 @@ RandomFernsClassifier::~RandomFernsClassifier()
 
 float RandomFernsClassifier::getRNG()
 {
-    return (float)theRNG() * 0.8 + 0.1;
+    return (float)theRNG();   
+    //return (float)theRNG() * 0.8 + 0.1;
 }
 
 void RandomFernsClassifier::update(const Mat &img, bool c, float p)

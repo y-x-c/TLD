@@ -28,6 +28,8 @@ Detector::Detector(const Mat &img, const Rect &_patternBB):
     
     patchGenerator = PatchGenerator(0, 0, DETECTOR_WARP_NOISE, DETECTOR_WARP_BLUR, 1. - DETECTOR_WARP_SCALE, 1. + DETECTOR_WARP_SCALE, -DETECTOR_WARP_ANGLE, DETECTOR_WARP_ANGLE, -DETECTOR_WARP_ANGLE, DETECTOR_WARP_ANGLE);
     
+    updatePatchGenerator = PatchGenerator(0, 0, DETECTOR_UPDATE_WARP_NOISE, DETECTOR_UPDATE_WARP_BLUR, 1. - DETECTOR_UPDATE_WARP_SCALE, 1. + DETECTOR_UPDATE_WARP_SCALE, -DETECTOR_UPDATE_WARP_ANGLE, DETECTOR_UPDATE_WARP_ANGLE, -DETECTOR_UPDATE_WARP_ANGLE, DETECTOR_UPDATE_WARP_ANGLE);
+    
     train(img, patternBB);
 }
 
@@ -131,6 +133,11 @@ void Detector::genWarped(const Mat &img, Mat &warped)
     patchGenerator(img, Point(img.cols / 2, img.rows / 2), warped, img.size(), theRNG());
 }
 
+void Detector::genUpdateWarped(const cv::Mat &img, cv::Mat &warped)
+{
+    updatePatchGenerator(img, Point(img.cols / 2, img.rows / 2), warped, img.size(), theRNG());
+}
+
 void Detector::genPosData(const Mat &img, TYPE_TRAIN_DATA_SET &trainDataSet)
 {
     int count = 0;
@@ -159,6 +166,7 @@ void Detector::genNegData(const Mat &img, TYPE_TRAIN_DATA_SET &trainDataSet)
     for(auto it = scanBBs.end() - 1; it >= scanBBs.begin() && (*it).second <= DETECTOR_TH_BAD_BB; it--)
     {
         if(varClassifier.getClass(it->first, patternVar) == CLASS_NEG) continue;
+        if(it->second >= DETECTOR_TH_OL) continue;
      
         TYPE_TRAIN_DATA trainData(make_pair(img(it->first), CLASS_NEG));
         //tTrainData trainData(make_pair(img(it->first).clone(), cNeg));

@@ -262,13 +262,31 @@ Rect readRect()
 
 void testTLD()
 {
-    string filename("/Users/Orthocenter/Developments/MedianFlow/car.mpg");
+    string dir("/Users/Orthocenter/Developments/TLD/datasets/02_jumping/");
+    string filename(dir + "jumping.mpg");
+    string initFilename(dir + "init.txt");
+    string retFilename(dir + "myRet2.txt");
+    
+    FILE *fin = fopen(initFilename.c_str(), "r");
+    FILE *fout = fopen(retFilename.c_str(), "w");
+
     VideoController videoController(filename);
     ViewController viewController(&videoController);
     
     videoController.readNextFrame();
 
-    Rect rect = viewController.getRect();
+    int tlx, tly, brx, bry;
+    fscanf(fin, "%d,%d,%d,%d", &tlx, &tly, &brx, &bry);
+    
+    fprintf(fout, "%d,%d,%d,%d\n", tlx, tly, brx, bry);
+    
+    Rect rect = Rect(Point2d(tlx, tly), Point2d(brx, bry));
+    //Rect rect = viewController.getRect();
+    
+    viewController.refreshCache();
+    viewController.drawRect(rect, COLOR_BLUE);
+    viewController.showCache();
+    waitKey();
     
     TLD tld(videoController.getCurrFrame(), rect);
     
@@ -305,12 +323,25 @@ void testTLD()
         viewController.showCache();
         waitKey(1);
         cerr << endl << endl;
+        
+        Rect retBB = tld.getBB();
+        if(retBB == Rect(Point2d(-1, -1), Point2d(-1, -1)))
+        {
+            fprintf(fout, "NaN,NaN,NaN,NaN\n");
+        }
+        else
+        {
+            fprintf(fout, "%d,%d,%d,%d\n", retBB.tl().x, retBB.tl().y, retBB.br().x, retBB.br().y);
+        }
     }
+    
+    fclose(fin);
+    fclose(fout);
 }
 
 int main()
 {
-    freopen("data.txt", "r", stdin);
+    //freopen("data.txt", "r", stdin);
     //testRandomFernsClassifier();
     //testNNClassifier();
     //testRFNNClassifier();
