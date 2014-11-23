@@ -10,6 +10,7 @@
 #define __TLD__TLD__
 
 #include <iostream>
+#include <queue>
 #include <opencv2/opencv.hpp>
 
 #include "MedianFlow.h"
@@ -34,9 +35,10 @@ public:
     Mat prevImg, nextImg;
     Rect bb;
     
-public:
+    float overlap(const TYPE_DETECTOR_BB &bb1, const TYPE_DETECTOR_BB &bb2);
+    Rect getInside(const Rect &bb);
     
-    int useTrack;
+public:
     
     TLD(const Mat &img, const Rect &bb);
     

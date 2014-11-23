@@ -299,29 +299,32 @@ void testTLD()
         vector<Rect> bbDetect;
       
         tld.track(bbTrack, bbDetect);
+
+        viewController.refreshCache();
         
 //        int count = 0;
 //        for(auto &sbb : tld.detector.scanBBs)
 //        {
-//            viewController.refreshCache();
-//            viewController.drawRect(tld.getBB(), COLOR_GREEN, 2);
+//            //viewController.refreshCache();
+//            //viewController.drawRect(tld.getBB(), COLOR_GREEN, 2);
 //            viewController.drawRect(sbb.first, COLOR_PURPLE);
-//            viewController.showCache();
-//            waitKey();
+//            //viewController.showCache();
+//            //waitKey(1);
 //            
-//            if(++count == 10) break;
+//            if(++count == 100) break;
 //        }
         
-        viewController.refreshCache();
-        viewController.drawRect(tld.getBB(), tld.useTrack == -1 ? COLOR_YELLOW : COLOR_GREEN, 2);
-//        for(auto &bb : bbDetect)
-//        {
-//            viewController.drawRect(bb, COLOR_YELLOW);
-//        }
-//        viewController.drawRect(bbTrack, COLOR_GREEN);
+        //viewController.refreshCache();
+        viewController.drawRect(bbTrack, COLOR_BLUE);
+        viewController.drawRect(tld.getBB(), COLOR_GREEN, 2);
+        
+        for(auto &bb : bbDetect)
+        {
+            viewController.drawRect(bb, COLOR_YELLOW);
+        }
         
         viewController.showCache();
-        waitKey(1);
+        waitKey();
         cerr << endl << endl;
         
         Rect retBB = tld.getBB();

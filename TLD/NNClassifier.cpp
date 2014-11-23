@@ -169,22 +169,22 @@ void NNClassifier::trainInit(const TYPE_TRAIN_DATA_SET &trainDataSet)
     }
     
     // can be improved
-//    int nCount = 0;
-//    for(auto &trainData : trainDataSet)
-//    {
-//        if(trainData.second == CLASS_NEG)
-//        {
-//            float Sr = calcSr(trainData.first);
-//            if(Sr > thPos)
-//            {
-//                thPos = Sr;
-//                cerr << "Increase thPos to " << thPos << endl;
-//                // update(patch, cNeg);
-//            }
-//            
-//            if(++nCount >= NN_MODEL_SIZE) break;
-//        }
-//    }
+    int nCount = 0;
+    for(auto &trainData : trainDataSet)
+    {
+        if(trainData.second == CLASS_NEG)
+        {
+            float Sr = calcSr(trainData.first);
+            if(Sr > thPos)
+            {
+                thPos = Sr;
+                cerr << "Increase thPos to " << thPos << endl;
+                // update(patch, cNeg);
+            }
+            
+            if(++nCount >= NN_MODEL_SIZE * 2) break;
+        }
+    }
     
     // debug
     //showModel();
