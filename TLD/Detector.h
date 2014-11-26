@@ -30,7 +30,6 @@ class Detector
 private:
     //debug
 public:
-    Mat ttttt;
     //end debug
     RandomFernsClassifier rFClassifier;
     NNClassifier nNClassifier;
@@ -51,9 +50,9 @@ public:
     
     void sortByOverlap(const TYPE_DETECTOR_BB &bb, bool rand = false);
     
-    void genWarped(const Mat &img, Mat &warped);
-    void genUpdateWarped(const Mat &img, Mat &warped);
-    void genPosData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &trainDataSetNN, TYPE_TRAIN_DATA_SET &trainDataSetRF);
+    //void genWarped(const Mat &img, Mat &warped);
+    //void genUpdateWarped(const Mat &img, Mat &warped);
+    void genPosData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &trainDataSetNN, TYPE_TRAIN_DATA_SET &trainDataSetRF, const int nWarped = DETECTOR_N_WARPED);
     void genNegData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &trainDataSetNN, TYPE_TRAIN_DATA_SET &trainDataSetRF);
     
     void update();

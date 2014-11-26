@@ -15,7 +15,7 @@ Detector::Detector(const Mat &img, const Mat &imgB, const Rect &_patternBB):
     // assert : img.type() == CV_8U
     
     patternBB = _patternBB;
-//    img(patternBB).copyTo(pattern);
+    
     imgW = img.cols;
     imgH = img.rows;
     
@@ -46,17 +46,15 @@ void Detector::train(const Mat &img, const Mat &imgB, const TYPE_DETECTOR_BB &pa
     
     for(int i = 1; i < trainDataSetRF.size(); i++)
     {
-        int r = (float)theRNG() * trainDataSetRF.size();
+        int r = (float)theRNG() * i;
         swap(trainDataSetRF[i], trainDataSetRF[r]);
     }
     
-    cerr << "Train Random Ferns Classifier." << endl;
     rFClassifier.train(trainDataSetRF);
-    cerr << "Finished.." << endl;
+    cerr << "Trained Random Ferns Classifier." << endl;
     
-    cerr << "Train Nearest Neighbor Classifier" << endl;
     nNClassifier.train(trainDataSetNN);
-    cerr << "Finished.." << endl;
+    cerr << "Trained Nearest Neighbor Classifier" << endl;
     
     nNClassifier.showModel();
 }
@@ -109,27 +107,31 @@ void Detector::sortByOverlap(const TYPE_DETECTOR_BB &bb, bool rand)
 void Detector::genScanBB()
 {
     int minWH = min(patternBB.width, patternBB.height);
-    int width = patternBB.width * ((float)DETECTOR_MIN_BB_SIZE / minWH);
-    int height = patternBB.height * ((float)DETECTOR_MIN_BB_SIZE / minWH);
+    float widthf = patternBB.width * ((float)DETECTOR_MIN_BB_SIZE / minWH);
+    float heightf = patternBB.height * ((float)DETECTOR_MIN_BB_SIZE / minWH);
     
     const float SCALES[] = {0.16151,0.19381,0.23257,0.27908,0.33490,0.40188,0.48225,
         0.57870,0.69444,0.83333,1,1.20000,1.44000,1.72800,
         2.07360,2.48832,2.98598,3.58318,4.29982,5.15978,6.19174};
     
-    //for(; width <= imgW && height <= imgH; width *= 1.2, height *= 1.2)
+    //for(; widthf <= imgW && heightf <= imgH; widthf *= 1.125186016, heightf *= 1.125186016)
     for(int i = 0 ; i < 21; i++)
     {
-        width = round(SCALES[i] * patternBB.width);
-        height = round(SCALES[i] * patternBB.height);
+        int width = round(SCALES[i] * patternBB.width);
+        int height = round(SCALES[i] * patternBB.height);
+        //int width = cvRound(widthf);
+        //int height = cvRound(heightf);
         
         int minSide = min(width, height);
         
         if(width > imgW || height > imgH || min(width, height) < DETECTOR_MIN_BB_SIZE) continue;
         
         int dx = round(minSide * 0.1), dy = round(minSide * 0.1);
-        for(int x = 1; x + width <= imgW; x += dx)
+        for(int x = 0; x + width <= imgW; x += dx)
+        //for(int x = 1; x + width <= imgW; x += dx)
         {
-            for(int y = 1; y + height <= imgH; y += dy)
+            for(int y = 0; y + height <= imgH; y += dy)
+            //for(int y = 1; y + height <= imgH; y += dy)
             {
                 Rect bb(x, y, width, height);
                 scanBBs.push_back(TYPE_DETECTOR_SCANBB(bb, -1));
@@ -143,43 +145,29 @@ void Detector::genScanBB()
         scanBBs.push_back(TYPE_DETECTOR_SCANBB(bb, -1));
     }
     
+    cerr << "Genearte " << scanBBs.size() << " scan bounding boxes." << endl;
+    
     sortByOverlap(patternBB, true);
 }
 
-void Detector::genWarped(const Mat &img, Mat &warped)
-{
-    patchGenerator(img, Point(img.cols / 2, img.rows / 2), warped, img.size(), theRNG());
-}
+//void Detector::genWarped(const Mat &img, Mat &warped)
+//{
+//    patchGenerator(img, Point(img.cols / 2, img.rows / 2), warped, img.size(), theRNG());
+//}
+//
+//void Detector::genUpdateWarped(const cv::Mat &img, cv::Mat &warped)
+//{
+//    updatePatchGenerator(img, Point(img.cols / 2, img.rows / 2), warped, img.size(), theRNG());
+//}
 
-void Detector::genUpdateWarped(const cv::Mat &img, cv::Mat &warped)
-{
-    updatePatchGenerator(img, Point(img.cols / 2, img.rows / 2), warped, img.size(), theRNG());
-}
-
-void Detector::genPosData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &trainDataSetNN, TYPE_TRAIN_DATA_SET &trainDataSetRF)
+void Detector::genPosData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &trainDataSetNN, TYPE_TRAIN_DATA_SET &trainDataSetRF, const int nWarped)
 {
     int count = 0;
     
-    // NN
+    // NN - POS
     trainDataSetNN.push_back(make_pair(img(scanBBs[0].first), CLASS_POS));
     
-    // RF
-//    for(int i = 0; i < DETECTOR_N_GOOD_BB && scanBBs[i].second >= DETECTOR_TH_GOOD_BB; i++)
-//    {
-//        for(int j = 0; j < DETECTOR_N_WARPED; j++)
-//        {
-//            Mat warped;
-//            genWarped(img(scanBBs[i].first), warped);
-//
-//            TYPE_TRAIN_DATA trainData(make_pair(warped, CLASS_POS));
-//            trainDataSetRF.push_back(trainData);
-//            
-//            count++;
-//        }
-//    }
-    
-    // RF
-    
+    // RF - POS
     int tlx = img.cols, tly = img.rows, brx = 0, bry = 0;
     
     for(int i = 0; i < DETECTOR_N_GOOD_BB && scanBBs[i].second >= DETECTOR_TH_GOOD_BB; i++)
@@ -191,13 +179,13 @@ void Detector::genPosData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &
     }
     
     Point tl(tlx, tly), br(brx, bry);
-    Rect bbHull(Point(tlx, tly), Point(brx, bry));
+    Rect bbHull(tl, br);
     
     int cx, cy;
     cx = cvRound((double)(tlx + brx) / 2);
     cy = cvRound((double)(tly + bry) / 2);
     
-    for(int j = 0; j < DETECTOR_N_WARPED; j++)
+    for(int j = 0; j < nWarped; j++)
     {
         Mat warped;
         
@@ -221,40 +209,53 @@ void Detector::genPosData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &
         }
     }
     
-    cerr << "Generate " << count << " RF positive samples." << endl;
+    cerr << "Generate 1 NN positive samples and " << count << " RF positive samples." << endl;
 }
 
 void Detector::genNegData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &trainDataSetNN, TYPE_TRAIN_DATA_SET &trainDataSetRF)
 {
-    int count = 0;
+    int countRF = 0, countRFT = 0;
+    int countNN = 0, countNNT = 0;
     VarClassifier varClassifier(img);
     
     auto it = scanBBs.begin();
-    while(it->second >= DETECTOR_TH_BAD_BB) it++;
+    for(; it != scanBBs.end() && it->second >= DETECTOR_TH_BAD_BB; it++) ;
+    
     for(; it < scanBBs.end(); it++)
     {
         if(varClassifier.getClass(it->first, patternVar) == CLASS_NEG) continue;
      
-        int c = ((int)theRNG() % 2) ? CLASS_NEG : CLASS_TEST_NEG;
-        if(count <= 200)
+        int c = ((int)theRNG() % 2) ? CLASS_TEST_NEG : CLASS_NEG;
+        
+        // NN - NEG
+        if(countNN <= 100 && c == CLASS_NEG)
         {
             TYPE_TRAIN_DATA trainDataNN(make_pair(img(it->first), c));
             trainDataSetNN.push_back(trainDataNN);
+            countNN++;
         }
         
+        if(countNNT <= 100 && c == CLASS_TEST_NEG)
+        {
+            TYPE_TRAIN_DATA trainDataNN(make_pair(img(it->first), c));
+            trainDataSetNN.push_back(trainDataNN);
+            countNNT++;
+        }
+        
+        // RF - NEG
         TYPE_TRAIN_DATA trainDataRF(make_pair(imgB(it->first), c));
         trainDataSetRF.push_back(trainDataRF);
         
-        count++;
+        if(c == CLASS_NEG) countRF++;
+        if(c == CLASS_TEST_NEG) countRFT++;
     }
     
-    cerr << "Generate " << count << " negative samples." << endl;
+    cerr << "Generate " << countNN << " NN negative samples and " << countNNT << " NN negative test samples." << endl;
+    cerr << "Generate " << countRF << " RF negative samples and " << countRFT << " RF negative test samples." << endl;
 }
 
 void Detector::dectect(const Mat &img, const Mat &imgB, TYPE_DETECTOR_RET &ret)
 {
-    cerr << "Start detecting." << endl;
-
     if(!ret.empty()) ret.clear();
     
     VarClassifier varClassifier(img);
@@ -298,8 +299,6 @@ void Detector::dectect(const Mat &img, const Mat &imgB, TYPE_DETECTOR_RET &ret)
     cerr << "- After Variance Classifier : " << acVar << " bounding boxes." << endl;
     cerr << "- After Random Ferns Classifier: " << acRF << " bounding boxes." << endl;
     cerr << "- After Nearest Neighbor Classifier " << ret.size() << " bounding boxes." << endl;
-    
-    cerr << "Finish detecting." << endl;
 }
 
 float Detector::calcSr(const cv::Mat &img)

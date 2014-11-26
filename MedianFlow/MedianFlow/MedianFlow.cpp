@@ -87,6 +87,9 @@ bool MedianFlow::isPointInside(const TYPE_MF_PT &pt, const TYPE_MF_COORD alpha)
 
 bool MedianFlow::isBoxUsable(const TYPE_MF_BB &rect)
 {
+    // just test
+    return min(rect.width, rect.height) >= MF_HALF_PATCH_SIZE * 2 + 1;
+    
     int width = prevImg.cols, height = prevImg.rows;
  
     // bounding box is too large
@@ -213,6 +216,7 @@ TYPE_MF_BB MedianFlow::calcRect(const TYPE_MF_BB &rect, const vector<TYPE_MF_PT>
     if(dxs.size() <= 1)
     {
         status = MF_TRACK_F_PTS;
+        cerr << "MF_TRACK_F_PTS" << endl;
         return BB_ERROR;
     }
     
@@ -278,20 +282,24 @@ TYPE_MF_BB MedianFlow::calcRect(const TYPE_MF_BB &rect, const vector<TYPE_MF_PT>
     
     sort(absDist.begin(), absDist.end());
     cerr << "FB :" << absDist[(int)absDist.size() / 2] << endl;
-    if(absDist[(int)absDist.size() / 2] > MF_ERROR_DIST)
+    //if(absDist[(int)absDist.size() / 2] > MF_ERROR_DIST)
+    if(absDist[(int)absDist.size() / 2] > 30)
     //if(medianAbsDist > 20)
     {
         status = MF_TRACK_F_CONFUSION;
+        cerr << "MF_TRACK_F_CONFUSION" << endl;
         return BB_ERROR;
     }
     
     if(!isBoxUsable(ret))
     {
         status = MF_TRACK_F_BOX;
+        cerr << "MF_TRACK_F_BOX" << endl;
         return BB_ERROR;
     }
     
     status = MF_TRACK_SUCCESS;
+    cerr << "MF_TRACK_SUCCESS" << endl;
     return ret;
 }
 

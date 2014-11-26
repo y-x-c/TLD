@@ -262,14 +262,22 @@ Rect readRect()
 
 void testTLD()
 {
-    string dir("/Users/Orthocenter/Developments/TLD/datasets/01_david/");
-    string filename(dir + "david.mpg");
-    //string dir("/Users/Orthocenter/Developments/TLD/datasets/02_jumping/");
-    //string filename(dir + "jumping.mpg");
+    //string dir("/Users/Orthocenter/Developments/TLD/datasets/01_david/");
+    //string filename(dir + "david.mpg");
+    string dir("/Users/Orthocenter/Developments/TLD/datasets/02_jumping/");
+    string filename(dir + "jumping.mpg");
     //string dir("/Users/Orthocenter/Developments/TLD/datasets/03_pedestrian1/");
     //string filename(dir + "pedestrian1.mpg");
+    //string dir("/Users/Orthocenter/Developments/TLD/datasets/04_pedestrian2/");
+    //string filename(dir + "pedestrian2.mpg");
+    //string dir("/Users/Orthocenter/Developments/TLD/datasets/05_pedestrian3/");
+    //string filename(dir + "pedestrian3.mpg");
     //string dir("/Users/Orthocenter/Developments/TLD/datasets/06_car/");
     //string filename(dir + "car.mpg");
+    //string dir("/Users/Orthocenter/Developments/TLD/datasets/07_motocross/");
+    //string filename(dir + "motocross.mpg");
+    //string dir("/Users/Orthocenter/Developments/TLD/datasets/08_volkswagen/");
+    //string filename(dir + "volkswagen.mpg");
     string initFilename(dir + "init.txt");
     string retFilename(dir + "myRet2.txt");
     
@@ -283,10 +291,10 @@ void testTLD()
 
     int tlx, tly, brx, bry;
     fscanf(fin, "%d,%d,%d,%d", &tlx, &tly, &brx, &bry);
-    
     fprintf(fout, "%d,%d,%d,%d\n", tlx, tly, brx, bry);
     
     Rect rect = Rect(Point2d(tlx, tly), Point2d(brx, bry));
+    cerr << "Input Rect : " <<  rect << endl;
     //Rect rect = viewController.getRect();
     
     viewController.refreshCache();
@@ -330,10 +338,10 @@ void testTLD()
         }
         
         viewController.showCache();
-        if(videoController.frameNumber() > 200)
+        if(videoController.frameNumber() > 100)
             waitKey(1);
         else
-            waitKey();
+            waitKey(1);
         cerr << endl << endl;
         
         Rect retBB = tld.getBB();

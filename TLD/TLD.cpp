@@ -51,7 +51,9 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
     
     //track
     int trackerStatus;
-    Rect trackerRet = tracker->trackBox(bb, trackerStatus);
+    //Rect trackerRet = tracker->trackBox(bb, trackerStatus);
+    TYPE_MF_BB _trackerRet = tracker->trackBox(bb, trackerStatus);
+    Rect trackerRet(cvRound(_trackerRet.x), cvRound(_trackerRet.y), cvRound(_trackerRet.width), cvRound(_trackerRet.height));
     Rect trackerRetInside = getInside(trackerRet);
     
     //detect
@@ -61,13 +63,6 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
     //integrate
     float trackSc = -1;
     Rect finalBB, finalBBInside;
-    
-    ////// just test
-//    if(trackerStatus == MF_TRACK_SUCCESS && detector.calcSc(nextImg(trackerRetInside)) < 0.3)
-//    {
-//        trackerStatus = !trackerStatus;
-//    }
-    //////
     
     if(trackerStatus != MF_TRACK_SUCCESS && detectorRet.size() == 0)
     {
@@ -106,6 +101,7 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
         //debug
         bbDetect = detectorRet;
         //end debug
+        
         //cluster
         vector<vector<int> > edges(detectorRet.size());
         
@@ -129,17 +125,20 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
         {
             if(belong[i] != -1) continue;
             
-            Q.push(i);
             belong[i] = cntBelong;
+            Q.push(i);
             
             while(!Q.empty())
             {
                 int x = Q.front();
                 Q.pop();
-                belong[x] = cntBelong;
-                for(auto &x : edges[x])
+                for(auto &y : edges[x])
                 {
-                    if(belong[x] == -1) Q.push(x);
+                    if(belong[y] == -1)
+                    {
+                        belong[y] = cntBelong;
+                        Q.push(y);
+                    }
                 }
             }
             
@@ -156,6 +155,7 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
             for(int j = 0; j < detectorRet.size(); j++)
             {
                 if(belong[j] != i) continue;
+                
                 x += detectorRet[j].x;
                 y += detectorRet[j].y;
                 height += detectorRet[j].height;
@@ -259,15 +259,23 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
     
     cerr << "final result Sn :" << detector.calcSN(nextImg(finalBBInside)) << endl;
     cerr << "final result Sc :" << detector.calcSc(nextImg(finalBBInside)) << endl;
-    if(valid) 
+    
+    if(valid)
     {
-        if(detector.calcSN(nextImg(finalBBInside)) < 0.95 && detector.calcSr(nextImg(finalBBInside)) > 0.5)
+        if(finalBB == finalBBInside)
         {
-            learner.learn(nextImg, nextImgB, finalBB);
+            if(detector.calcSN(nextImg(finalBBInside)) < 0.95 && detector.calcSr(nextImg(finalBBInside)) > 0.5)
+            {
+                learner.learn(nextImg, nextImgB, finalBB);
+            }
+            else
+            {
+                cerr << "changing too fast, not learning" << endl;
+            }
         }
         else
         {
-            cerr << "changing too fast, not learning" << endl;
+            cerr << "finalbb is out of image, not learning" << endl;
         }
     }
     else

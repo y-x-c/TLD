@@ -141,7 +141,7 @@ bool NNClassifier::update(const Mat &patch, int c)
         return true;
     }
     
-    if(c == CLASS_NEG && Sr > 0.5)
+    if(c == CLASS_NEG && Sr > 0.5) /// think more
     {
         if(nPatches.size() >= NN_MODEL_SIZE)
         {
@@ -224,7 +224,7 @@ Mat NNClassifier::getPatch(const Mat &img)
     
     meanStdDev(patch, mean, stddev);
     patch.convertTo(patch, CV_32F);
-    patch -= mean.val[0];
+    patch -= mean.val[0];   // think more
 
     return patch;
 }
@@ -232,25 +232,13 @@ Mat NNClassifier::getPatch(const Mat &img)
 bool NNClassifier::getClass(const Mat &img)
 {
     float Sr = calcSr(img);
-
-//    // debug    
-//    if(Sr >= NN_TH_POS)
-//    {
-//
-//        Mat imgs = img.clone();
-//        cvtColor(imgs, imgs, CV_GRAY2BGR);
-//        imshow("NN_POS", imgs);
-//        cerr << "Sr: " << Sr << endl;
-//        waitKey();
-//    }
-//    // end debug
     
     return  Sr > thPos ? CLASS_POS : CLASS_NEG;
 }
 
 void NNClassifier::showModel()
 {
-    cerr << "Positive samples : " << pPatches.size() << " Negative samples : " << nPatches.size() << endl;
+    cerr << "NN Positive samples : " << pPatches.size() << " Negative samples : " << nPatches.size() << endl;
     
     if(newSamplesP.cols) imshow("new positive samples", newSamplesP);
     if(newSamplesN.cols) imshow("new negative samples", newSamplesN);

@@ -49,29 +49,20 @@ RandomFernsClassifier::~RandomFernsClassifier()
 float RandomFernsClassifier::getRNG()
 {
     return (float)theRNG();
-    //return (float)theRNG() * 0.7 + 0.1;
 }
 
 void RandomFernsClassifier::update(const Mat &img, bool c, float p)
 {
-    // Do gaussian blur in whole image to have a high preformance
-    //Mat img;
-    //GaussianBlur(_img, img, Size(3, 3), 0);
-    
     if(p == -1.) p = getPosteriors(img);
     
     if(c == CLASS_POS)
     {
-        //if(p < FERN_TH_POS)
         if(p < thPos)
         {
-            //static int count = 0;
-            //cerr << ++count << endl;
             for(int iFern = 0; iFern < nFerns; iFern++)
             {
                 int code = getCode(img, iFern);
                 counter[iFern][code].first++;
-                //cerr << iFern << " " << code << endl;
             }
         }
     }
@@ -85,7 +76,6 @@ void RandomFernsClassifier::update(const Mat &img, bool c, float p)
             {
                 int code = getCode(img, iFern);
                 counter[iFern][code].second++;
-                //cerr << iFern << " " << code << endl;
             }
         }
     }
@@ -106,11 +96,8 @@ int RandomFernsClassifier::getCode(const Mat &img, int idx)
         int v2 = img.at<char>(p2y, p2x);
         
         code = (code << 1) | (v1 < v2);
-        
-        //cerr << (v1 < v2);
     }
     
-    //cerr << endl;
     return code;
 }
 
@@ -140,21 +127,6 @@ bool RandomFernsClassifier::getClass(const Mat &img)
 {
     // assert : _img.type() == CV_8U
     
-    // Do gaussian blur in whole image to have a high preformance
-    //Mat img;
-    //GaussianBlur(_img, img, Size(3, 3), 0);
-
-    // debug
-//    if(getPosteriors(img) >= 0.5)
-//    {
-//        Mat _img = img.clone();
-//        cvtColor(_img, _img, CV_GRAY2BGR);
-//        imshow("ddd", _img);
-//        waitKey(0);
-//    }
-    // end debug
-    
-    //if(getPosteriors(img) >= FERN_TH_POS)
     if(getPosteriors(img) >= thPos)
         return CLASS_POS;
     else
