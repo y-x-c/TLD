@@ -200,7 +200,7 @@ void OpticalFlow::trackPts(vector<TYPE_OF_PT> &pts, vector<TYPE_OF_PT> &retPts, 
     {
         vector<float> err;
         
-        calcOpticalFlowPyrLK(prevImg, nextImg, pts, retPts, status, err, Size(15, 15), 1);
+        calcOpticalFlowPyrLK(prevImg, nextImg, pts, retPts, status, err, Size(4, 4), 5, TermCriteria( TermCriteria::COUNT+TermCriteria::EPS, 20, 0.03), 0.5, 0);
     }
     else
     {

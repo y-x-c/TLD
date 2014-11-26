@@ -45,7 +45,8 @@ float NNClassifier::calcNCC(const Mat &patch1, const Mat &patch2)
         norm0 = norm(v0);
         norm1 = norm(v1);
         
-        return abs(v01.at<float>(0)) / norm0 / norm1;
+        // should not add "abs"
+        return v01.at<float>(0) / norm0 / norm1;
     }
 
 }
@@ -67,7 +68,7 @@ float NNClassifier::calcSPHalf(const Mat &img)
 {
     Mat patch = getPatch(img);
     int count = 0;
-    int halfSize = (int)pPatches.size() / 2; // complexity of list.size() in C++98 is up to linear.
+    int halfSize = ((int)pPatches.size() + 1) / 2; // complexity of list.size() in C++98 is up to linear.
     float maxS = 0;
     
     for(auto &pPatch : pPatches)
@@ -88,6 +89,7 @@ float NNClassifier::calcSN(const Mat &img)
     for(auto &nPatch : nPatches)
     {
         float S = (calcNCC(nPatch, patch) + 1) * 0.5;
+
         maxS = max(maxS, S);
     }
     
@@ -96,9 +98,11 @@ float NNClassifier::calcSN(const Mat &img)
 
 float NNClassifier::calcSr(const Mat &img)
 {
-    Mat patch = getPatch(img);
-    float SP = calcSP(patch);
-    float SN = calcSN(patch);
+    if(pPatches.size() == 0) return 0.;
+    if(nPatches.size() == 0) return 1.;
+    
+    float SP = calcSP(img);
+    float SN = calcSN(img);
     
     float dSP = 1 - SP;
     float dSN = 1 - SN;
@@ -108,9 +112,11 @@ float NNClassifier::calcSr(const Mat &img)
 
 float NNClassifier::calcSc(const Mat &img)
 {
-    Mat patch = getPatch(img);
-    float SPHalf = calcSPHalf(patch);
-    float SN = calcSN(patch);
+    if(pPatches.size() == 0) return 0.;
+    if(nPatches.size() == 0) return 1.;
+    
+    float SPHalf = calcSPHalf(img);
+    float SN = calcSN(img);
     
     float dSPHalf = 1 - SPHalf;
     float dSN = 1 - SN;
@@ -120,75 +126,34 @@ float NNClassifier::calcSc(const Mat &img)
 
 bool NNClassifier::update(const Mat &patch, int c)
 {
-    //Mat patch = getPatch(img);
-    float margin = calcSr(patch) - thPos;
+    float Sr = calcSr(patch);
+    float margin = Sr - thPos;
     
-    if(margin < NN_MARGIN)
+    if(c == CLASS_POS && margin < NN_MARGIN)
     {
-        if(c == CLASS_POS)
+        if(pPatches.size() >= NN_MODEL_SIZE)
         {
-            if(pPatches.size() >= NN_MODEL_SIZE)
-            {
-                int idx = (float)theRNG() * pPatches.size();
-                pPatches.erase(pPatches.begin() + idx);
-            }
-            pPatches.push_back(patch);
+            int idx = (float)theRNG() * pPatches.size();
+            pPatches.erase(pPatches.begin() + idx);
         }
+        pPatches.push_back(patch);
         
-        if(c == CLASS_NEG)
+        return true;
+    }
+    
+    if(c == CLASS_NEG && Sr > 0.5)
+    {
+        if(nPatches.size() >= NN_MODEL_SIZE)
         {
-            if(nPatches.size() >= NN_MODEL_SIZE)
-            {
-                int idx = (float)theRNG() * nPatches.size();
-                nPatches.erase(nPatches.begin() + idx);
-            }
-            nPatches.push_back(patch);
+            int idx = (float)theRNG() * nPatches.size();
+            nPatches.erase(nPatches.begin() + idx);
         }
+        nPatches.push_back(patch);
         
         return true;
     }
     
     return false;
-}
-
-void NNClassifier::trainInit(const TYPE_TRAIN_DATA_SET &trainDataSet)
-{
-    for(auto &trainData : trainDataSet)
-    {
-        Mat patch = getPatch(trainData.first);
-        bool c = trainData.second;
-        
-        if(c == CLASS_POS && pPatches.size() < NN_MODEL_SIZE) pPatches.push_back(patch);
-        if(c == CLASS_NEG && nPatches.size() < NN_MODEL_SIZE) nPatches.push_back(patch);
-        
-        // debug
-        //addToNewSamples(patch, c);
-        // end debug
-        
-        if(pPatches.size() >= NN_MODEL_SIZE && nPatches.size() >= NN_MODEL_SIZE) break;
-    }
-    
-    // can be improved
-    int nCount = 0;
-    for(auto &trainData : trainDataSet)
-    {
-        if(trainData.second == CLASS_NEG)
-        {
-            float Sr = calcSr(trainData.first);
-            if(Sr > thPos)
-            {
-                thPos = Sr;
-                cerr << "Increase thPos to " << thPos << endl;
-                // update(patch, cNeg);
-            }
-            
-            if(++nCount >= NN_MODEL_SIZE * 2) break;
-        }
-    }
-    
-    // debug
-    //showModel();
-    //
 }
 
 void NNClassifier::addToNewSamples(const Mat &patch, const int c)
@@ -214,7 +179,10 @@ void NNClassifier::addToNewSamples(const Mat &patch, const int c)
     
     samples = tmp;
     
-    cvtColor(patch, samples.colRange(samples.cols - NN_PATCH_SIZE, samples.cols), CV_GRAY2BGR);
+    Mat _patch = patch.clone();
+    normalize(_patch, _patch, 0, 255, NORM_MINMAX);
+    _patch.convertTo(_patch, CV_8U);
+    cvtColor(_patch, samples.colRange(samples.cols - NN_PATCH_SIZE, samples.cols), CV_GRAY2BGR);
 }
 
 void NNClassifier::train(const TYPE_TRAIN_DATA_SET &trainDataSet)
@@ -223,32 +191,41 @@ void NNClassifier::train(const TYPE_TRAIN_DATA_SET &trainDataSet)
     {
         Mat patch = getPatch(trainData.first);
         
-        if(update(patch, trainData.second))
+        if(trainData.second == CLASS_POS || trainData.second == CLASS_NEG)
         {
-            addToNewSamples(patch, trainData.second);
+            if(update(patch, trainData.second))
+            {
+                addToNewSamples(patch, trainData.second);
+            }
         }
     }
     
     for(auto &trainData : trainDataSet)
     {
-        if(trainData.second == CLASS_NEG)
+        if(trainData.second == CLASS_TEST_NEG)
         {
             float Sr = calcSr(trainData.first);
             if(Sr > thPos)
             {
                 thPos = Sr;
-                cerr << "Increase thPos to " << thPos << endl;
+                cerr << "Increase NN thPos to " << thPos << endl;
             }
         }
     }
 }
-
+    
 Mat NNClassifier::getPatch(const Mat &img)
 {
     Mat patch;
     
     resize(img, patch, Size(NN_PATCH_SIZE, NN_PATCH_SIZE));
     
+    Scalar mean, stddev;
+    
+    meanStdDev(patch, mean, stddev);
+    patch.convertTo(patch, CV_32F);
+    patch -= mean.val[0];
+
     return patch;
 }
 

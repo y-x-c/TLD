@@ -20,6 +20,9 @@ using namespace cv;
 class NNClassifier
 {
 private:
+//debug
+public:
+//end debug
     //save positive patches and negative patches in [1 x (patchSize ^ 2)]
     vector<Mat> pPatches, nPatches;
 
@@ -29,17 +32,16 @@ private:
     
     bool update(const Mat &patch, int c);
     
-    float thPos;
-    
     Mat newSamplesP, newSamplesN;
     void addToNewSamples(const Mat &patch, const int c);
     
 public:
+    float thPos;
+    
     NNClassifier();
     
     ~NNClassifier();
     
-    void trainInit(const TYPE_TRAIN_DATA_SET &trainDataSet);
     void train(const TYPE_TRAIN_DATA_SET &trainDataSet);
     
     void showModel();
@@ -52,6 +54,6 @@ public:
     float calcSN(const Mat &img);
     float calcSr(const Mat &img);
     float calcSc(const Mat &img);
-};
+};       
 
 #endif /* defined(__TLD__NNClassifier__) */

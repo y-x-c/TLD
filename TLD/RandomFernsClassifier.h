@@ -19,6 +19,7 @@ using namespace cv;
 class RandomFernsClassifier
 {
 private:
+    float thPos;
     
     int nFerns, nLeaves;
     vector<TYPE_FERN_PNCOUNTER> counter;
@@ -28,7 +29,6 @@ private:
     
     float getRNG();
     int getCode(const Mat &img, int idx);
-    float getPosteriors(const Mat &img);
     
 public:
     
@@ -37,6 +37,7 @@ public:
     
     ~RandomFernsClassifier();
     
+    float getPosteriors(const Mat &img);
     bool getClass(const Mat &img);
     
     void train(const TYPE_TRAIN_DATA_SET &trainDataSet);

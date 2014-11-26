@@ -262,8 +262,14 @@ Rect readRect()
 
 void testTLD()
 {
-    string dir("/Users/Orthocenter/Developments/TLD/datasets/02_jumping/");
-    string filename(dir + "jumping.mpg");
+    string dir("/Users/Orthocenter/Developments/TLD/datasets/01_david/");
+    string filename(dir + "david.mpg");
+    //string dir("/Users/Orthocenter/Developments/TLD/datasets/02_jumping/");
+    //string filename(dir + "jumping.mpg");
+    //string dir("/Users/Orthocenter/Developments/TLD/datasets/03_pedestrian1/");
+    //string filename(dir + "pedestrian1.mpg");
+    //string dir("/Users/Orthocenter/Developments/TLD/datasets/06_car/");
+    //string filename(dir + "car.mpg");
     string initFilename(dir + "init.txt");
     string retFilename(dir + "myRet2.txt");
     
@@ -324,7 +330,10 @@ void testTLD()
         }
         
         viewController.showCache();
-        waitKey();
+        if(videoController.frameNumber() > 200)
+            waitKey(1);
+        else
+            waitKey();
         cerr << endl << endl;
         
         Rect retBB = tld.getBB();

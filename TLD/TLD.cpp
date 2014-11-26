@@ -9,11 +9,11 @@
 #include "TLD.h"
 
 TLD::TLD(const Mat &img, const Rect &_bb):
-bb(_bb)
+bb(_bb), valid(false)
 {
     setNextFrame(img);
     
-    detector = Detector(nextImg, _bb);
+    detector = Detector(nextImg, nextImgB, _bb);
     learner = Learner(&detector);
 }
 
@@ -27,7 +27,8 @@ void TLD::setNextFrame(const cv::Mat &frame)
     cv::swap(prevImg, nextImg);
     
     cvtColor(frame, nextImg, CV_BGR2GRAY);
-    GaussianBlur(nextImg, nextImg, Size(9, 9), 1.5);
+    
+    GaussianBlur(nextImg, nextImgB, Size(9, 9), 1.5);
 }
 
 Rect TLD::getInside(const Rect &bb)
@@ -55,17 +56,17 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
     
     //detect
     TYPE_DETECTOR_RET detectorRet;
-    detector.dectect(nextImg, detectorRet);
+    detector.dectect(nextImg, nextImgB, detectorRet);
     
     //integrate
     float trackSc = -1;
     Rect finalBB, finalBBInside;
     
     ////// just test
-    //if(trackerStatus == MF_TRACK_SUCCESS && detector.calcSc(nextImg(_rect)) < 0.4)
-    //{
-    //    trackerStatus = !trackerStatus;
-    //}
+//    if(trackerStatus == MF_TRACK_SUCCESS && detector.calcSc(nextImg(trackerRetInside)) < 0.3)
+//    {
+//        trackerStatus = !trackerStatus;
+//    }
     //////
     
     if(trackerStatus != MF_TRACK_SUCCESS && detectorRet.size() == 0)
@@ -75,6 +76,15 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
         
         delete tracker;
         return;
+    }
+    
+    if(trackerStatus != MF_TRACK_SUCCESS)
+    {
+        valid = false;
+    }
+    else
+    {
+        valid |= detector.calcSc(nextImg(trackerRetInside)) > max(0.7f, detector.nNClassifier.thPos);
     }
     
     if(trackerStatus == MF_TRACK_SUCCESS)
@@ -189,6 +199,8 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
             {
                 cerr << "Found a better match.. Regard it as the final result.." << endl;
                 finalBB = finalBBInside = clusterBB[lastId].first;
+                
+                valid = false;
             }
             else
             {
@@ -210,10 +222,11 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
                     }
                 }
                 
-                cx = (10 * trackerRet.x + cx) / (10 + closeDetections);
-                cy = (10 * trackerRet.y + cy) / (10 + closeDetections);
-                cw = (10 * trackerRet.width + cw) / (10 + closeDetections);
-                ch = (10 * trackerRet.height + ch) / (10 + closeDetections);
+                int tWeight = 10;
+                cx = (tWeight * trackerRet.x + cx) / (tWeight + closeDetections);
+                cy = (tWeight * trackerRet.y + cy) / (tWeight + closeDetections);
+                cw = (tWeight * trackerRet.width + cw) / (tWeight + closeDetections);
+                ch = (tWeight * trackerRet.height + ch) / (tWeight + closeDetections);
                 
                 finalBB = Rect(cvRound(cx), cvRound(cy), cvRound(cw), cvRound(ch));
                 finalBBInside = getInside(finalBB);
@@ -225,12 +238,16 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
             {
                 cerr << "Track failed but found only one cluster, regard it as the final result." << endl;
                 finalBB = finalBBInside = clusterBB[0].first;
+                
+                valid = false;
             }
             else
             {
                 cerr << "Track failed and found too many clusters, discard detection result." << endl;
                 cerr << "Not visible." << endl;
                 bb = BB_ERROR;
+                
+                valid = false;
                 
                 delete tracker;
                 return;
@@ -240,13 +257,22 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
     
     cerr << "Final bb : " << finalBB << endl;
     
-    if(trackerStatus == MF_TRACK_SUCCESS && detector.calcSc(nextImg(finalBBInside)) >= 0.5)
+    cerr << "final result Sn :" << detector.calcSN(nextImg(finalBBInside)) << endl;
+    cerr << "final result Sc :" << detector.calcSc(nextImg(finalBBInside)) << endl;
+    if(valid) 
     {
-        learner.learn(nextImg, finalBB);
+        if(detector.calcSN(nextImg(finalBBInside)) < 0.95 && detector.calcSr(nextImg(finalBBInside)) > 0.5)
+        {
+            learner.learn(nextImg, nextImgB, finalBB);
+        }
+        else
+        {
+            cerr << "changing too fast, not learning" << endl;
+        }
     }
     else
     {
-        cerr << "Not learning because change is too fast." << endl;
+        cerr << "Final result is not in a convinced trajectory, not training" << endl;
     }
     
     bb = finalBB;

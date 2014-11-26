@@ -12,6 +12,7 @@
 #include <iostream>
 #include <queue>
 #include <opencv2/opencv.hpp>
+#include <algorithm>
 
 #include "MedianFlow.h"
 #include "Detector.h"
@@ -32,8 +33,10 @@ public:
     Detector detector;
     Learner learner;
     
-    Mat prevImg, nextImg;
+    Mat prevImg, nextImg, nextImgB;
     Rect bb;
+    
+    bool valid;
     
     float overlap(const TYPE_DETECTOR_BB &bb1, const TYPE_DETECTOR_BB &bb2);
     Rect getInside(const Rect &bb);

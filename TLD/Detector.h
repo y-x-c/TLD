@@ -30,6 +30,7 @@ class Detector
 private:
     //debug
 public:
+    Mat ttttt;
     //end debug
     RandomFernsClassifier rFClassifier;
     NNClassifier nNClassifier;
@@ -40,7 +41,7 @@ public:
     float patternVar;
     PatchGenerator patchGenerator;
     PatchGenerator updatePatchGenerator;
-    TYPE_TRAIN_DATA_SET trainDataSet;
+    TYPE_TRAIN_DATA_SET trainDataSetNN, trainDataSetRF;
     
     float overlap(const TYPE_DETECTOR_BB &bb1, const TYPE_DETECTOR_BB &bb2);
     
@@ -52,23 +53,24 @@ public:
     
     void genWarped(const Mat &img, Mat &warped);
     void genUpdateWarped(const Mat &img, Mat &warped);
-    void genPosData(const Mat &img, TYPE_TRAIN_DATA_SET &trainDataSet);
-    void genNegData(const Mat &img, TYPE_TRAIN_DATA_SET &trainDataSet);
+    void genPosData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &trainDataSetNN, TYPE_TRAIN_DATA_SET &trainDataSetRF);
+    void genNegData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &trainDataSetNN, TYPE_TRAIN_DATA_SET &trainDataSetRF);
     
     void update();
-    void train(const Mat &img, const Rect &patternBB);
+    void train(const Mat &img, const Mat &imgB, const Rect &patternBB);
     
 public:
     Detector(){}
-    Detector(const Mat &img, const Rect &patternBB);
+    Detector(const Mat &img, const Mat &imgB, const Rect &patternBB);
     
     static bool scanBBCmp(const TYPE_DETECTOR_SCANBB &a, const TYPE_DETECTOR_SCANBB &b)
     {
         return a.second > b.second;
     }
     
-    void dectect(const Mat &img, TYPE_DETECTOR_RET &ret);
+    void dectect(const Mat &img, const Mat &imgB, TYPE_DETECTOR_RET &ret);
     
+    float calcSN(const Mat &img);
     float calcSr(const Mat &img);
     float calcSc(const Mat &img);
     float getVar(const Mat &img);

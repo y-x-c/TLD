@@ -19,7 +19,7 @@ Learner::~Learner()
     
 }
 
-void Learner::learn(const Mat &img, const Rect &ret)
+void Learner::learn(const Mat &img, const Mat &imgB, const Rect &ret)
 {
     cerr << "Start learning" << endl;
  
@@ -33,36 +33,20 @@ void Learner::learn(const Mat &img, const Rect &ret)
     
     detector->sortByOverlap(ret, false);
     
-    //////////////////////////
-    // NN's training dataset//
-    //////////////////////////
+    TYPE_TRAIN_DATA_SET &nnTrainDataset = detector->trainDataSetNN;
+    nnTrainDataset.clear();
+    TYPE_TRAIN_DATA_SET &rfTrainDataset = detector->trainDataSetRF;
+    rfTrainDataset.clear();
     
-    TYPE_TRAIN_DATA_SET nnTrainDataset;
+    detector->genPosData(img, imgB, nnTrainDataset, rfTrainDataset);
     
     //P-expert
-    int pCount = 0;
-    for(int i = 0; i < LEARNER_N_GOOD_BB; i++)
-    {
-        TYPE_DETECTOR_SCANBB &sbb = detector->scanBBs[i];
-        
-        if(sbb.status == DETECTOR_REJECT_NN)
-        {
-            for(int j = 0; j < LEARNER_N_WARPED; j++)
-            {
-                pCount++;
-                
-                Mat warped;
-                detector->genUpdateWarped(img(sbb.first), warped);
-                
-                TYPE_TRAIN_DATA trainData(make_pair(warped, CLASS_POS));
-                nnTrainDataset.push_back(trainData);
-            }
-        }
-    }
+    int pCount = 1;
+//    nnTrainDataset.push_back(make_pair(img(ret), CLASS_POS));
     
     //N-expert
     int nCount = 0;
-    for(int i = LEARNER_N_GOOD_BB; i < detector->scanBBs.size(); i++)
+    for(int i = 0; i < detector->scanBBs.size(); i++)
     {
         TYPE_DETECTOR_SCANBB &sbb = detector->scanBBs[i];
         
@@ -79,56 +63,26 @@ void Learner::learn(const Mat &img, const Rect &ret)
     }
     
     cerr << "Generate " << pCount << " positive sample(s) and " << nCount << " negative sample(s) for NN classifier" << endl;
-    
-    // end NN's training dataset
-    
-    //////////////////////////
-    // RF's training dataset//
-    //////////////////////////
-    
-    TYPE_TRAIN_DATA_SET rfTrainDataset;
 
-    //P-expert
-    pCount = 0;
-    for(int i = 0; i < LEARNER_N_GOOD_BB; i++)
-    {
-        TYPE_DETECTOR_SCANBB &sbb = detector->scanBBs[i];
-        
-        if(true)
-        {
-            for(int j = 0; j < LEARNER_N_WARPED; j++)
-            {
-                pCount++;
-                
-                Mat warped;
-                detector->genUpdateWarped(img(sbb.first), warped);
-                
-                TYPE_TRAIN_DATA trainData(make_pair(warped, CLASS_POS));
-                rfTrainDataset.push_back(trainData);
-            }
-        }
-    }
+    
+    pCount = (int)rfTrainDataset.size();
     
     //N-expert
     nCount = 0;
-    for(int i = LEARNER_N_GOOD_BB; i < detector->scanBBs.size(); i++)
+    for(int i = 0; i < detector->scanBBs.size(); i++)
     {
         TYPE_DETECTOR_SCANBB &sbb = detector->scanBBs[i];
         
-        if(sbb.status != DETECTOR_REJECT_VAR || sbb.status != DETECTOR_REJECT_RF)
+        if(sbb.status != DETECTOR_REJECT_VAR)
         {
-            if(sbb.second < LEARNER_TH_OL)
+            if(sbb.second < LEARNER_TH_OL && detector->rFClassifier.getPosteriors(imgB(sbb.first)) >= 0.1)
             {
                 nCount++;
                 
-                TYPE_TRAIN_DATA trainData(make_pair(img(sbb.first), CLASS_NEG));
+                TYPE_TRAIN_DATA trainData(make_pair(imgB(sbb.first), CLASS_NEG));
                 rfTrainDataset.push_back(trainData);
             }
         }
-        
-        ///debug
-        if(nCount == 5000) break;
-        ///end debug
     }
     
     cerr << "Generate " << pCount << " positive sample(s) and " << nCount << " negative sample(s) for RF classifier" << endl;

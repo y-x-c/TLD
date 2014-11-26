@@ -31,7 +31,7 @@ public:
     
     ~Learner();
     
-    void learn(const Mat &img, const Rect &ret);
+    void learn(const Mat &img, const Mat &imgB, const Rect &ret);
 };
 
 #endif /* defined(__TLD__Learner__) */

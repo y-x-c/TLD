@@ -22,7 +22,7 @@ typedef Point_<TYPE_OF_COORD> TYPE_OF_PT;
 typedef TYPE_OF_PT TYPE_MF_PT;
 typedef Rect_<TYPE_MF_COORD> TYPE_MF_BB;
 
-typedef pair<Mat, bool> TYPE_TRAIN_DATA;
+typedef pair<Mat, char> TYPE_TRAIN_DATA;
 typedef vector<TYPE_TRAIN_DATA> TYPE_TRAIN_DATA_SET;
 
 typedef pair<Point2f, Point2f> TYPE_FERN_LEAF; // save pixel comparision
@@ -48,8 +48,8 @@ static const TYPE_OF_PT PT_ERROR = TYPE_OF_PT(-1, -1);
 static const TYPE_MF_BB BB_ERROR = TYPE_MF_BB(PT_ERROR, PT_ERROR);
 
 static const int MF_HALF_PATCH_SIZE = 4; // NNC patch size
-static const int MF_NPTS = 10; // number of points in the patch(both vertical and horizontal)
-static const int MF_ERROR_DIST = 20; // threshold of detecting confusing condition
+static const int MF_NPTS = 12; // number of points in the patch(both vertical and horizontal)
+static const int MF_ERROR_DIST = 10; // threshold of detecting confusing condition
 
 static const int MF_TRACK_SUCCESS = 0;
 static const int MF_TRACK_F_PTS = -1; // number of points after filtering is too little
@@ -77,7 +77,6 @@ static const float LEARNER_TH_OL = 0.2; // if overlap of a patch is small than 0
 static const float VAR_FACTOR = 0.5;
 
 static const float FERN_TH_POS = 0.5; // if avgP(1 | x) >= FERN_TH_POS then x will be classified as Positive
-static const float FERN_TH_NEG = 1 - FERN_TH_POS;
 
 static const int NN_MODEL_SIZE = 100; // size of POS model and NEG model
 static const int NN_PATCH_SIZE = 15; // all input image will be resize to (NN_PATCH_SIZE * NN_PATCH_SIZE)
@@ -87,6 +86,7 @@ static const float NN_MARGIN = 0.1; // if Sr(patch) - NN_TH_POS  < NN_MARGIN the
 
 static const bool CLASS_POS = true;
 static const bool CLASS_NEG = false;
+static const char CLASS_TEST_NEG = 2;
 
 static const float DETECTOR_TH_OL = 0.2;
 
@@ -108,7 +108,7 @@ static const float DETECTOR_UPDATE_WARP_ANGLE = 5. / 180 * CV_PI;
 static const float DETECTOR_TH_GOOD_BB = 0.6;
 static const float DETECTOR_TH_BAD_BB = 0.2;
 static const int DETECTOR_N_GOOD_BB = 10;
-static const int DETECTOR_N_WARPED = 10;
+static const int DETECTOR_N_WARPED = 20;
 
 static const char DETECTOR_ACCEPTED = 1;
 static const char DETECTOR_REJECT_VAR = 2;

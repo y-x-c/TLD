@@ -15,6 +15,8 @@ RandomFernsClassifier::RandomFernsClassifier()
 
 RandomFernsClassifier::RandomFernsClassifier(int _nFerns, int _nLeaves)
 {
+    thPos = FERN_TH_POS;
+    
     nFerns = _nFerns;
     nLeaves = _nLeaves;
     
@@ -46,8 +48,8 @@ RandomFernsClassifier::~RandomFernsClassifier()
 
 float RandomFernsClassifier::getRNG()
 {
-    return (float)theRNG();   
-    //return (float)theRNG() * 0.8 + 0.1;
+    return (float)theRNG();
+    //return (float)theRNG() * 0.7 + 0.1;
 }
 
 void RandomFernsClassifier::update(const Mat &img, bool c, float p)
@@ -60,7 +62,8 @@ void RandomFernsClassifier::update(const Mat &img, bool c, float p)
     
     if(c == CLASS_POS)
     {
-        if(p <= FERN_TH_POS)
+        //if(p < FERN_TH_POS)
+        if(p < thPos)
         {
             //static int count = 0;
             //cerr << ++count << endl;
@@ -72,9 +75,11 @@ void RandomFernsClassifier::update(const Mat &img, bool c, float p)
             }
         }
     }
-    else
+    
+    if(c == CLASS_NEG)
     {
-        if(p >= FERN_TH_NEG)
+        //if(p >= FERN_TH_POS)
+        if(p >= 0.5)
         {
             for(int iFern = 0; iFern < nFerns; iFern++)
             {
@@ -138,8 +143,19 @@ bool RandomFernsClassifier::getClass(const Mat &img)
     // Do gaussian blur in whole image to have a high preformance
     //Mat img;
     //GaussianBlur(_img, img, Size(3, 3), 0);
+
+    // debug
+//    if(getPosteriors(img) >= 0.5)
+//    {
+//        Mat _img = img.clone();
+//        cvtColor(_img, _img, CV_GRAY2BGR);
+//        imshow("ddd", _img);
+//        waitKey(0);
+//    }
+    // end debug
     
-    if(getPosteriors(img) >= FERN_TH_POS)
+    //if(getPosteriors(img) >= FERN_TH_POS)
+    if(getPosteriors(img) >= thPos)
         return CLASS_POS;
     else
         return CLASS_NEG;
@@ -147,9 +163,23 @@ bool RandomFernsClassifier::getClass(const Mat &img)
 
 void RandomFernsClassifier::train(const TYPE_TRAIN_DATA_SET &trainDataSet)
 {
-    for(auto trainData : trainDataSet)
+    for(auto &trainData : trainDataSet)
     {
         // assert : trainData.first.type() == CV_8U
-        update(trainData.first, trainData.second);
+        if(trainData.second == CLASS_POS || trainData.second == CLASS_NEG)
+            update(trainData.first, trainData.second);
+    }
+    
+    for(auto &trainData : trainDataSet)
+    {
+        if(trainData.second == CLASS_TEST_NEG)
+        {
+            float p = getPosteriors(trainData.first);
+            if(thPos < p)
+            {
+                thPos = p;
+                cerr << "Increase RF thPos to " << thPos << endl;
+            }
+        }
     }
 }
