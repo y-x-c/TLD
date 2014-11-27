@@ -30,15 +30,15 @@ private:
     float getRNG();
     int getCode(const Mat &img, int idx);
     
+    float getPosteriors(const Mat &img);
+    
 public:
     
     RandomFernsClassifier();
     RandomFernsClassifier(int nStructs, int nFerns);
     
     ~RandomFernsClassifier();
-    
-    float getPosteriors(const Mat &img);
-    bool getClass(const Mat &img);
+    bool getClass(const Mat &img, TYPE_DETECTOR_SCANBB &sbb);
     
     void train(const TYPE_TRAIN_DATA_SET &trainDataSet);
 };

@@ -123,11 +123,11 @@ float RandomFernsClassifier::getPosteriors(const Mat &img)
     return averageP;
 }
 
-bool RandomFernsClassifier::getClass(const Mat &img)
+bool RandomFernsClassifier::getClass(const Mat &img, TYPE_DETECTOR_SCANBB &sbb)
 {
     // assert : _img.type() == CV_8U
     
-    if(getPosteriors(img) >= thPos)
+    if((sbb.posterior = getPosteriors(img)) >= thPos)
         return CLASS_POS;
     else
         return CLASS_NEG;

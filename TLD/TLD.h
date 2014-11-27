@@ -48,7 +48,7 @@ public:
     ~TLD();
     
     void setNextFrame(const Mat &frame);
-    void track(Rect &bbTrack, vector<Rect> &bbDetect);
+    void track(Rect &bbTrack, TYPE_DETECTOR_RET &bbDetect);
     
     Rect getBB();
     

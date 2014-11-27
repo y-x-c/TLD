@@ -264,8 +264,8 @@ void testTLD()
 {
     //string dir("/Users/Orthocenter/Developments/TLD/datasets/01_david/");
     //string filename(dir + "david.mpg");
-    string dir("/Users/Orthocenter/Developments/TLD/datasets/02_jumping/");
-    string filename(dir + "jumping.mpg");
+    //string dir("/Users/Orthocenter/Developments/TLD/datasets/02_jumping/");
+    //string filename(dir + "jumping.mpg");
     //string dir("/Users/Orthocenter/Developments/TLD/datasets/03_pedestrian1/");
     //string filename(dir + "pedestrian1.mpg");
     //string dir("/Users/Orthocenter/Developments/TLD/datasets/04_pedestrian2/");
@@ -278,13 +278,19 @@ void testTLD()
     //string filename(dir + "motocross.mpg");
     //string dir("/Users/Orthocenter/Developments/TLD/datasets/08_volkswagen/");
     //string filename(dir + "volkswagen.mpg");
+    //string dir("/Users/Orthocenter/Developments/MedianFlow/");
+    //string filename(dir + "me_480.mov");
+    
+    string dir("/Users/Orthocenter/Developments/TLD/dataset2/06_car/");
+    
     string initFilename(dir + "init.txt");
-    string retFilename(dir + "myRet2.txt");
+    string retFilename(dir + "myRet3.txt");
     
     FILE *fin = fopen(initFilename.c_str(), "r");
     FILE *fout = fopen(retFilename.c_str(), "w");
 
-    VideoController videoController(filename);
+    //VideoController videoController(filename);
+    VideoController videoController(dir, true);
     ViewController viewController(&videoController);
     
     videoController.readNextFrame();
@@ -294,8 +300,8 @@ void testTLD()
     fprintf(fout, "%d,%d,%d,%d\n", tlx, tly, brx, bry);
     
     Rect rect = Rect(Point2d(tlx, tly), Point2d(brx, bry));
-    cerr << "Input Rect : " <<  rect << endl;
     //Rect rect = viewController.getRect();
+    cerr << "Input Rect : " <<  rect << endl;
     
     viewController.refreshCache();
     viewController.drawRect(rect, COLOR_BLUE);
@@ -310,7 +316,7 @@ void testTLD()
         tld.setNextFrame(videoController.getCurrFrame());
         
         Rect bbTrack;
-        vector<Rect> bbDetect;
+        TYPE_DETECTOR_RET bbDetect;
       
         tld.track(bbTrack, bbDetect);
 
@@ -338,7 +344,7 @@ void testTLD()
         }
         
         viewController.showCache();
-        if(videoController.frameNumber() > 100)
+        if(videoController.frameNumber() > 600)
             waitKey(1);
         else
             waitKey(1);
@@ -368,5 +374,6 @@ int main()
     //testDetector();
     //testVarClassifier();
     testTLD();
+    //genDataForOpenTLD();
     return 0;
 }

@@ -28,9 +28,7 @@ class Detector
 {
     friend class Learner;
 private:
-    //debug
-public:
-    //end debug
+
     RandomFernsClassifier rFClassifier;
     NNClassifier nNClassifier;
     
@@ -62,17 +60,10 @@ public:
     Detector(){}
     Detector(const Mat &img, const Mat &imgB, const Rect &patternBB);
     
-    static bool scanBBCmp(const TYPE_DETECTOR_SCANBB &a, const TYPE_DETECTOR_SCANBB &b)
-    {
-        return a.second > b.second;
-    }
-    
     void dectect(const Mat &img, const Mat &imgB, TYPE_DETECTOR_RET &ret);
     
-    float calcSN(const Mat &img);
-    float calcSr(const Mat &img);
-    float calcSc(const Mat &img);
-    float getVar(const Mat &img);
+    void updataNNPara(const Mat &img, TYPE_DETECTOR_SCANBB &sbb);
+    float getNNThPos();
     
     ~Detector();
 };

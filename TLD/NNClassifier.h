@@ -30,6 +30,8 @@ public:
     
     Mat getPatch(const Mat &img);
     
+    void getS(const Mat &img, float &Sp, float &Sn, float &Sr, float &Sc);
+    float calcSr(const Mat &img);
     bool update(const Mat &patch, int c);
     
     Mat newSamplesP, newSamplesN;
@@ -47,13 +49,7 @@ public:
     void showModel();
     
     // assert : img.type() == CV_8U
-    bool getClass(const Mat &img);
-    
-    float calcSP(const Mat &img);
-    float calcSPHalf(const Mat &img);
-    float calcSN(const Mat &img);
-    float calcSr(const Mat &img);
-    float calcSc(const Mat &img);
-};       
+    bool getClass(const Mat &img, TYPE_DETECTOR_SCANBB &sbb);
+};
 
 #endif /* defined(__TLD__NNClassifier__) */

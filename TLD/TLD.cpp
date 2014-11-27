@@ -40,7 +40,7 @@ Rect TLD::getInside(const Rect &bb)
     return retBB;
 }
 
-void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
+void TLD::track(Rect &bbTrack, TYPE_DETECTOR_RET &bbDetect)
 {
     ///// debug
     bbTrack = BB_ERROR;
@@ -51,10 +51,14 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
     
     //track
     int trackerStatus;
-    //Rect trackerRet = tracker->trackBox(bb, trackerStatus);
     TYPE_MF_BB _trackerRet = tracker->trackBox(bb, trackerStatus);
-    Rect trackerRet(cvRound(_trackerRet.x), cvRound(_trackerRet.y), cvRound(_trackerRet.width), cvRound(_trackerRet.height));
-    Rect trackerRetInside = getInside(trackerRet);
+    TYPE_DETECTOR_SCANBB trackerRet(Rect(cvRound(_trackerRet.x), cvRound(_trackerRet.y), cvRound(_trackerRet.width), cvRound(_trackerRet.height)));
+    TYPE_DETECTOR_SCANBB trackerRetInside = getInside(trackerRet);
+
+    if(trackerStatus == MF_TRACK_SUCCESS)
+    {
+        detector.updataNNPara(nextImg, trackerRetInside);
+    }
     
     //detect
     TYPE_DETECTOR_RET detectorRet;
@@ -62,7 +66,7 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
     
     //integrate
     float trackSc = -1;
-    Rect finalBB, finalBBInside;
+    TYPE_DETECTOR_SCANBB finalBB, finalBBInside;
     
     if(trackerStatus != MF_TRACK_SUCCESS && detectorRet.size() == 0)
     {
@@ -79,15 +83,14 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
     }
     else
     {
-        valid |= detector.calcSc(nextImg(trackerRetInside)) > max(0.7f, detector.nNClassifier.thPos);
+        valid |= trackerRetInside.Sr > max(0.7f, detector.getNNThPos());
     }
     
     if(trackerStatus == MF_TRACK_SUCCESS)
     {
-        float Sc = detector.calcSc(nextImg(trackerRetInside));
-        cerr << "Track bb : " << trackerRet << " Sc : " << Sc << " Sr : " << detector.calcSr(nextImg(trackerRetInside)) << endl;
+        cerr << "Track bb : " << trackerRet << " Sc : " << trackerRetInside.Sc << " Sr : " << trackerRetInside.Sr << endl;
 
-        trackSc = Sc;
+        trackSc = trackerRetInside.Sc;
         finalBB = trackerRet;
         finalBBInside = trackerRetInside;
         
@@ -145,7 +148,7 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
             cntBelong++;
         }
         
-        vector<pair<TYPE_DETECTOR_BB, float> > clusterBB;
+        TYPE_DETECTOR_RET clusterBB;
         for(int i = 0; i < cntBelong; i++)
         {
             float x = 0., y = 0., height = 0., width = 0.;
@@ -161,7 +164,7 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
                 height += detectorRet[j].height;
                 width += detectorRet[j].width;
                 
-                Sc += detector.calcSc(nextImg(detectorRet[j]));
+                Sc += detectorRet[j].Sc;
                 
                 count++;
             }
@@ -172,11 +175,11 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
             width /= count;
             Sc /= count;
             
-            Rect _rect = Rect(cvRound(x), cvRound(y), cvRound(width), cvRound(height));
+            TYPE_DETECTOR_SCANBB _rect(Rect(cvRound(x), cvRound(y), cvRound(width), cvRound(height)));
+            _rect.Sc = Sc;
+            clusterBB.push_back(_rect);
             
             cerr << "Cluster " << i << " : " << _rect  << " Sc : " << Sc << endl;
-            
-            clusterBB.push_back(make_pair(_rect, Sc));
         }
         
         cout << "Found " << cntBelong << " clusters." << endl;
@@ -188,7 +191,7 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
             
             for(int i = 0; i < cntBelong; i++)
             {
-                if(overlap(clusterBB[i].first, trackerRet) < 0.5 && clusterBB[i].second > trackSc)
+                if(overlap(clusterBB[i], trackerRet) < 0.5 && clusterBB[i].Sc > trackSc)
                 {
                     confidentDetections++;
                     lastId = i;
@@ -198,7 +201,7 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
             if(confidentDetections == 1)
             {
                 cerr << "Found a better match.. Regard it as the final result.." << endl;
-                finalBB = finalBBInside = clusterBB[lastId].first;
+                finalBB = finalBBInside = clusterBB[lastId];
                 
                 valid = false;
             }
@@ -237,7 +240,7 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
             if(cntBelong == 1)
             {
                 cerr << "Track failed but found only one cluster, regard it as the final result." << endl;
-                finalBB = finalBBInside = clusterBB[0].first;
+                finalBB = finalBBInside = clusterBB[0];
                 
                 valid = false;
             }
@@ -255,16 +258,18 @@ void TLD::track(Rect &bbTrack, vector<Rect> &bbDetect)
         }
     }
     
+    detector.updataNNPara(nextImg, finalBBInside);
+    
     cerr << "Final bb : " << finalBB << endl;
     
-    cerr << "final result Sn :" << detector.calcSN(nextImg(finalBBInside)) << endl;
-    cerr << "final result Sc :" << detector.calcSc(nextImg(finalBBInside)) << endl;
+    cerr << "final result Sn :" << finalBBInside.Sn << endl;
+    cerr << "final result Sc :" << finalBBInside.Sc << endl;
     
     if(valid)
     {
         if(finalBB == finalBBInside)
         {
-            if(detector.calcSN(nextImg(finalBBInside)) < 0.95 && detector.calcSr(nextImg(finalBBInside)) > 0.5)
+            if(finalBBInside.Sn < 0.95 && finalBBInside.Sr > 0.5)
             {
                 learner.learn(nextImg, nextImgB, finalBB);
             }

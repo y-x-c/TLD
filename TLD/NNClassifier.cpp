@@ -51,77 +51,44 @@ float NNClassifier::calcNCC(const Mat &patch1, const Mat &patch2)
 
 }
 
-float NNClassifier::calcSP(const Mat &img)
+void NNClassifier::getS(const cv::Mat &img, float &Sp, float &Sn, float &Sr, float &Sc)
 {
     Mat patch = getPatch(img);
-    float maxS = 0;
-    for(auto &pPatch : pPatches)
-    {
-        float S = (calcNCC(pPatch, patch) + 1) * 0.5;
-        maxS = max(maxS, S);
-    }
+    float maxSp = 0, maxSpHalf = 0.;
     
-    return maxS;
-}
-
-float NNClassifier::calcSPHalf(const Mat &img)
-{
-    Mat patch = getPatch(img);
+    int halfSize = ((int)pPatches.size() + 1) / 2;
     int count = 0;
-    int halfSize = ((int)pPatches.size() + 1) / 2; // complexity of list.size() in C++98 is up to linear.
-    float maxS = 0;
     
     for(auto &pPatch : pPatches)
     {
         float S = (calcNCC(pPatch, patch) + 1) * 0.5;
-        maxS = max(maxS, S);
+        maxSp = max(maxSp, S);
         
-        if(++count >= halfSize) break;
+        if(++count <= halfSize) maxSpHalf = max(maxSpHalf, S);
     }
     
-    return maxS;
-}
-
-float NNClassifier::calcSN(const Mat &img)
-{
-    Mat patch = getPatch(img);
-    float maxS = 0;
+    float maxSn = 0;
     for(auto &nPatch : nPatches)
     {
         float S = (calcNCC(nPatch, patch) + 1) * 0.5;
-
-        maxS = max(maxS, S);
+        maxSn = max(maxSn, S);
     }
     
-    return maxS;
+    float dSpHalf = 1 - maxSpHalf;
+    float dSp = 1 - maxSp;
+    float dSn = 1 - maxSn;
+    
+    Sr = dSn / (dSp + dSn);
+    Sc = dSn / (dSpHalf + dSn);
+    Sn = maxSn;
+    Sp = maxSp;
 }
 
 float NNClassifier::calcSr(const Mat &img)
 {
-    if(pPatches.size() == 0) return 0.;
-    if(nPatches.size() == 0) return 1.;
-    
-    float SP = calcSP(img);
-    float SN = calcSN(img);
-    
-    float dSP = 1 - SP;
-    float dSN = 1 - SN;
-    
-    return dSN / (dSP + dSN);
-}
-
-float NNClassifier::calcSc(const Mat &img)
-{
-    if(pPatches.size() == 0) return 0.;
-    if(nPatches.size() == 0) return 1.;
-    
-    float SPHalf = calcSPHalf(img);
-    float SN = calcSN(img);
-    
-    float dSPHalf = 1 - SPHalf;
-    float dSN = 1 - SN;
-    
-    return dSN / (dSPHalf + dSN);
+    float Sr, dummy;
+    getS(img, dummy, dummy, Sr, dummy);
+    return Sr;
 }
 
 bool NNClassifier::update(const Mat &patch, int c)
@@ -229,11 +196,11 @@ Mat NNClassifier::getPatch(const Mat &img)
     return patch;
 }
 
-bool NNClassifier::getClass(const Mat &img)
+bool NNClassifier::getClass(const Mat &img, TYPE_DETECTOR_SCANBB &sbb)
 {
-    float Sr = calcSr(img);
+    getS(img, sbb.Sp, sbb.Sn, sbb.Sr, sbb.Sc);
     
-    return  Sr > thPos ? CLASS_POS : CLASS_NEG;
+    return sbb.Sr > thPos ? CLASS_POS : CLASS_NEG;
 }
 
 void NNClassifier::showModel()

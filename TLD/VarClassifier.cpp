@@ -37,7 +37,7 @@ float VarClassifier::getVar(const Rect &bb)
     return sqmean - mean * mean;
 }
 
-bool VarClassifier::getClass(const Rect &bb, float patternVar)
+bool VarClassifier::getClass(TYPE_DETECTOR_SCANBB &bb, float patternVar)
 {
-    return getVar(bb) >= patternVar * VAR_FACTOR;
+    return (bb.var = getVar(bb)) >= patternVar * VAR_FACTOR;
 }

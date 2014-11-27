@@ -22,13 +22,6 @@ Learner::~Learner()
 void Learner::learn(const Mat &img, const Mat &imgB, const Rect &ret)
 {
     cerr << "[Learning]" << endl;
-//    int imgW = img.cols, imgH = img.rows;
-//    Rect rImg(0, 0, imgW, imgH);
-//    if(!(rImg.contains(ret.tl()) && rImg.contains(ret.br())))
-//    {
-//        cerr << "Learning exited because bb is out of image." << endl;
-//        return;
-//    }
     
     detector->sortByOverlap(ret, false);
     
@@ -48,14 +41,12 @@ void Learner::learn(const Mat &img, const Mat &imgB, const Rect &ret)
         
         if(sbb.status != DETECTOR_REJECT_VAR && sbb.status != DETECTOR_REJECT_RF)
         {
-            if(sbb.second < LEARNER_TH_OL)
+            if(sbb.overlap < LEARNER_TH_OL)
             {
                 nCountNN++;
                 
-                TYPE_TRAIN_DATA trainData(make_pair(img(sbb.first), CLASS_NEG));
+                TYPE_TRAIN_DATA trainData(make_pair(img(sbb), CLASS_NEG));
                 nnTrainDataset.push_back(trainData);
-                
-                cerr << "nn example Sn : " << detector->nNClassifier.calcSN(trainData.first) << " Sr : " << detector->nNClassifier.calcSr(trainData.first) << " Sc : " << detector->nNClassifier.calcSc(trainData.first) << endl;
             }
         }
     }
@@ -66,30 +57,28 @@ void Learner::learn(const Mat &img, const Mat &imgB, const Rect &ret)
     {
         TYPE_DETECTOR_SCANBB &sbb = detector->scanBBs[i];
         
-        //if(sbb.status != DETECTOR_REJECT_VAR)
-        //{
-            if(sbb.second < LEARNER_TH_OL && detector->rFClassifier.getPosteriors(imgB(sbb.first)) >= 0.1)
+        if(sbb.status != DETECTOR_REJECT_VAR)
+        {
+            if(sbb.overlap < LEARNER_TH_OL && sbb.posterior >= 0.1)
             {
                 nCountRF++;
                 
-                TYPE_TRAIN_DATA trainData(make_pair(imgB(sbb.first), CLASS_NEG));
+                TYPE_TRAIN_DATA trainData(make_pair(imgB(sbb), CLASS_NEG));
                 rfTrainDataset.push_back(trainData);
             }
-        //}
+        }
     }
     
-//    for(int i = 1; i < rfTrainDataset.size(); i++)
-//    {
-//        int r = (float)theRNG() * i;
-//        swap(rfTrainDataset[i], rfTrainDataset[r]);
-//    }
+    for(int i = 1; i < rfTrainDataset.size(); i++)
+    {
+        int r = (float)theRNG() * i;
+        swap(rfTrainDataset[i], rfTrainDataset[r]);
+    }
     
     cerr << "Generated " << nCountNN << " NN negative samples and " << nCountRF << " RF negative test samples." << endl;
     
     detector->update();
     cerr << "Updated detector" << endl;
-    //detector->rFClassifier.train(rfTrainDataset);
-    //detector->nNClassifier.train(nnTrainDataset);
     
     detector->nNClassifier.showModel();
 }

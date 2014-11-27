@@ -29,23 +29,40 @@ typedef pair<Point2f, Point2f> TYPE_FERN_LEAF; // save pixel comparision
 typedef vector<vector<TYPE_FERN_LEAF> > TYPE_FERN_FERNS; // save all ferns
 typedef vector<pair<int, int> > TYPE_FERN_PNCOUNTER; // save vote data of a fern
 
-typedef Rect TYPE_DETECTOR_BB;
-struct TYPE_DETECTOR_SCANBB
-{
-    TYPE_DETECTOR_BB first;   //bb
-    float second; //overlap
-    char status;
-    
-    TYPE_DETECTOR_SCANBB(const TYPE_DETECTOR_BB &_bb):first(_bb), second(-1), status(0){};
-    TYPE_DETECTOR_SCANBB(const TYPE_DETECTOR_BB &_bb, const float _ol):first(_bb), second(_ol), status(0){};
-};
-typedef vector<TYPE_DETECTOR_SCANBB> TYPE_DETECTOR_SCANBBS;
-typedef vector<TYPE_DETECTOR_BB> TYPE_DETECTOR_RET;
-
-static const bool OF_USE_OPENCV = 1;
-
 static const TYPE_OF_PT PT_ERROR = TYPE_OF_PT(-1, -1);
 static const TYPE_MF_BB BB_ERROR = TYPE_MF_BB(PT_ERROR, PT_ERROR);
+
+typedef Rect TYPE_DETECTOR_BB;
+
+class TYPE_DETECTOR_SCANBB : public TYPE_DETECTOR_BB
+{
+public:
+    float overlap; //overlap
+    char status;
+    float var;
+    float posterior;
+    float Sp, Sn, Sr, Sc;
+    
+    TYPE_DETECTOR_SCANBB():
+        TYPE_DETECTOR_BB(TYPE_DETECTOR_BB(-1, -1, 0, 0)), overlap(-1), status(-1), posterior(-1), Sp(-1), Sn(-1), Sr(-1), Sc(-1)
+    {
+    }
+
+    
+    TYPE_DETECTOR_SCANBB(const TYPE_DETECTOR_BB &_bb):
+        TYPE_DETECTOR_BB(_bb), overlap(-1), status(-1), posterior(-1), Sp(-1), Sn(-1), Sr(-1), Sc(-1)
+    {
+    }
+    
+    static bool cmpOL(const TYPE_DETECTOR_SCANBB &a, const TYPE_DETECTOR_SCANBB &b)
+    {
+        return a.overlap > b.overlap;
+    }
+};
+typedef vector<TYPE_DETECTOR_SCANBB> TYPE_DETECTOR_SCANBBS;
+typedef vector<TYPE_DETECTOR_SCANBB> TYPE_DETECTOR_RET;
+
+static const bool OF_USE_OPENCV = 1;
 
 static const int MF_HALF_PATCH_SIZE = 4; // NNC patch size
 static const int MF_NPTS = 12; // number of points in the patch(both vertical and horizontal)

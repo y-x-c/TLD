@@ -28,7 +28,7 @@ public:
     ~VarClassifier(){}
     
     float getVar(const Rect &bb);
-    bool getClass(const Rect &bb, float patternVar);
+    bool getClass(TYPE_DETECTOR_SCANBB &bb, float patternVar);
 };
 
 #endif /* defined(__TLD__VarClassifier__) */

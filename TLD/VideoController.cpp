@@ -10,13 +10,24 @@
 
 VideoController::~VideoController()
 {
-    delete videoCapture;
+    if(!imageMode) delete videoCapture;
 }
 
-VideoController::VideoController(string &filename):
-    curr(0), frame(0), cameraMode(false)
+VideoController::VideoController(string &path, bool _imageMode):
+    curr(0), frame(0), cameraMode(false), imageMode(_imageMode)
 {
-    videoCapture = new VideoCapture(filename);
+    if(!imageMode)
+    {
+        videoCapture = new VideoCapture(path);
+    }
+    else
+    {
+        this->path = path;
+        string frameFilename(path + "framenum.txt");
+        FILE *fin = fopen(frameFilename.c_str(), "r");
+        fscanf(fin, "%d", &totalFrame);
+        fclose(fin);
+    }
     
     // check if the video file is opened
 }
@@ -41,12 +52,37 @@ bool VideoController::readNextFrame()
 {
     curr ^= 1;
     frame++;
-    return videoCapture -> read(frames[curr]);
+    
+    if(imageMode)
+    {
+        if(frame <= totalFrame)
+        {
+            char filename[20];
+            sprintf(filename, "%.5d", frame);
+            string fullPath = path + filename + ".jpg";
+            frames[curr] = imread(fullPath);
+            return true;
+        }
+        return false;
+    }
+    else
+    {
+        return videoCapture -> read(frames[curr]);
+    }
+    
+    return false;
 }
 
 Size VideoController::frameSize()
 {
-    return Size(videoCapture->get(CV_CAP_PROP_FRAME_WIDTH), videoCapture->get(CV_CAP_PROP_FRAME_HEIGHT));
+    if(imageMode)
+    {
+        return frames[curr].size();
+    }
+    else
+    {
+        return Size(videoCapture->get(CV_CAP_PROP_FRAME_WIDTH), videoCapture->get(CV_CAP_PROP_FRAME_HEIGHT));
+    }
 }
 
 int VideoController::frameNumber()

@@ -23,15 +23,18 @@ private:
     
     VideoCapture *videoCapture;
     
+    string path;
+    int totalFrame;
+    
 public:
     
-    bool cameraMode;
+    bool cameraMode, imageMode;
     
     VideoController();
     
     ~VideoController();
     
-    VideoController(string &filename);
+    VideoController(string &path, bool _imageMode = false);
     VideoController(int camera = 0);
     
     Mat getCurrFrame();
