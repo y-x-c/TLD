@@ -23,7 +23,7 @@ void Learner::learn(const Mat &img, const Mat &imgB, const Rect &ret)
 {
     cerr << "[Learning]" << endl;
     
-    detector->sortByOverlap(ret, false);
+    detector->sortByOverlap(ret, true);
     
     TYPE_TRAIN_DATA_SET &nnTrainDataset = detector->trainDataSetNN;
     nnTrainDataset.clear();
@@ -39,7 +39,7 @@ void Learner::learn(const Mat &img, const Mat &imgB, const Rect &ret)
     {
         TYPE_DETECTOR_SCANBB &sbb = detector->scanBBs[i];
         
-        if(sbb.status != DETECTOR_REJECT_VAR && sbb.status != DETECTOR_REJECT_RF)
+        if(sbb.status != DETECTOR_REJECT_VAR)// && sbb.status != DETECTOR_REJECT_RF)
         {
             if(sbb.overlap < LEARNER_TH_OL)
             {
@@ -49,6 +49,8 @@ void Learner::learn(const Mat &img, const Mat &imgB, const Rect &ret)
                 nnTrainDataset.push_back(trainData);
             }
         }
+        
+        if(nCountNN == 100) break;
     }
     
     // N-expert - RF
@@ -68,7 +70,7 @@ void Learner::learn(const Mat &img, const Mat &imgB, const Rect &ret)
             }
         }
     }
-    
+
 //    for(int i = 1; i < rfTrainDataset.size(); i++)
 //    {
 //        int r = (float)theRNG() * i;

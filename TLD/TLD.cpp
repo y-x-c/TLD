@@ -85,7 +85,7 @@ void TLD::track(Rect &bbTrack, TYPE_DETECTOR_RET &bbDetect)
     }
     else
     {
-        valid |= trackerRetInside.Sc > max(0.7f, detector.getNNThPos());
+        valid |= trackerRetInside.Sr > max(0.7f, detector.getNNThPos());
     }
     
     if(trackerStatus == MF_TRACK_SUCCESS)

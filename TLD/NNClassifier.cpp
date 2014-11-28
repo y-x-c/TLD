@@ -51,7 +51,7 @@ float NNClassifier::calcNCC(const Mat &patch1, const Mat &patch2)
 
 }
 
-void NNClassifier::getS(const cv::Mat &img, float &Sp, float &Sn, float &Sr, float &Sc)
+void NNClassifier::getS(const cv::Mat &img, float &Sp, float &Sn, float &Sr, float &Sc, int &maxSPIdx)
 {
     Mat patch = getPatch(img);
     float maxSp = 0, maxSpHalf = 0.;
@@ -59,10 +59,17 @@ void NNClassifier::getS(const cv::Mat &img, float &Sp, float &Sn, float &Sr, flo
     int halfSize = ((int)pPatches.size() + 1) / 2;
     int count = 0;
     
+    maxSPIdx = -1;
+    
     for(auto &pPatch : pPatches)
     {
         float S = (calcNCC(pPatch, patch) + 1) * 0.5;
-        maxSp = max(maxSp, S);
+        //maxSp = max(maxSp, S);
+        if(S > maxSp)
+        {
+            maxSp = S;
+            maxSPIdx = count;
+        }
         
         if(++count <= halfSize) maxSpHalf = max(maxSpHalf, S);
     }
@@ -84,16 +91,17 @@ void NNClassifier::getS(const cv::Mat &img, float &Sp, float &Sn, float &Sr, flo
     Sp = maxSp;
 }
 
-float NNClassifier::calcSr(const Mat &img)
+float NNClassifier::calcSr(const Mat &img, int &maxSPIdx)
 {
     float Sr, dummy;
-    getS(img, dummy, dummy, Sr, dummy);
+    getS(img, dummy, dummy, Sr, dummy, maxSPIdx);
     return Sr;
 }
 
 bool NNClassifier::update(const Mat &patch, int c)
 {
-    float Sr = calcSr(patch);
+    int maxSPIdx;
+    float Sr = calcSr(patch, maxSPIdx);
     float margin = Sr - thPos;
     
     if(c == CLASS_POS && margin < NN_MARGIN)
@@ -104,6 +112,7 @@ bool NNClassifier::update(const Mat &patch, int c)
             pPatches.erase(pPatches.begin() + idx);
         }
         pPatches.push_back(patch);
+        //pPatches.insert(pPatches.begin() + maxSPIdx + 1, patch);
         
         return true;
     }
@@ -171,7 +180,8 @@ void NNClassifier::train(const TYPE_TRAIN_DATA_SET &trainDataSet)
     {
         if(trainData.second == CLASS_TEST_NEG)
         {
-            float Sr = calcSr(trainData.first);
+            int dummy;
+            float Sr = calcSr(trainData.first, dummy);
             if(Sr > thPos)
             {
                 thPos = Sr;
@@ -198,7 +208,7 @@ Mat NNClassifier::getPatch(const Mat &img)
 
 bool NNClassifier::getClass(const Mat &img, TYPE_DETECTOR_SCANBB &sbb)
 {
-    getS(img, sbb.Sp, sbb.Sn, sbb.Sr, sbb.Sc);
+    getS(img, sbb.Sp, sbb.Sn, sbb.Sr, sbb.Sc, sbb.maxSPIdx);
     
     return sbb.Sr > thPos ? CLASS_POS : CLASS_NEG;
 }

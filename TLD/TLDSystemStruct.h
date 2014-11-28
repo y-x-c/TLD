@@ -42,6 +42,7 @@ public:
     float var;
     float posterior;
     float Sp, Sn, Sr, Sc;
+    int maxSPIdx;
     
     TYPE_DETECTOR_SCANBB():
         TYPE_DETECTOR_BB(TYPE_DETECTOR_BB(-1, -1, 0, 0)), overlap(-1), status(-1), posterior(-1), Sp(-1), Sn(-1), Sr(-1), Sc(-1)
@@ -95,7 +96,7 @@ static const float VAR_FACTOR = 0.5;
 
 static const float FERN_TH_POS = 0.5; // if avgP(1 | x) >= FERN_TH_POS then x will be classified as Positive
 
-static const int NN_MODEL_SIZE = 100; // size of POS model and NEG model
+static const int NN_MODEL_SIZE = 500; // size of POS model and NEG model
 static const int NN_PATCH_SIZE = 15; // all input image will be resize to (NN_PATCH_SIZE * NN_PATCH_SIZE)
 static const float NN_TH_POS = 0.65; // if Sr(patch) >= NN_TH_POS then  patch will be classified as Positive
 static const float NN_MARGIN = 0.1; // if Sr(patch) - NN_TH_POS  < NN_MARGIN then it will be used for update
@@ -109,7 +110,7 @@ static const float DETECTOR_TH_OL = 0.2;
 
 static const int DETECTOR_NFERNS = 10;
 static const int DETECTOR_NLEAVES = 13;
-static const int DETECTOR_MIN_BB_SIZE = 20; // minimum scanning bounding box size
+static const int DETECTOR_MIN_BB_SIZE = 15; // minimum scanning bounding box size
 
 static const float DETECTOR_WARP_NOISE = 5;
 static const bool DETECTOR_WARP_BLUR = true;

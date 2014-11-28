@@ -119,7 +119,7 @@ void Detector::genScanBB()
     scales.push_back(1.);
     s = fac;
     for(int i = 0; i <= 10 ; i++, s *= fac) scales.push_back(s);
-    s = fac;
+    s = 1. / fac;
     for(int i = 0; i <= 10 ; i++, s /= fac) scales.push_back(s);
     
     //for(; widthf <= imgW && heightf <= imgH; widthf *= 1.125186016, heightf *= 1.125186016)
@@ -148,9 +148,6 @@ void Detector::genScanBB()
             Rect bb(x, imgH - height, width, height);
             scanBBs.push_back(TYPE_DETECTOR_SCANBB(bb));
         }
-        
-        Rect bb(imgW - width, imgH - height, width, height);
-        scanBBs.push_back(TYPE_DETECTOR_SCANBB(bb));
     }
     
     cerr << "Genearte " << scanBBs.size() << " scan bounding boxes." << endl;
@@ -177,6 +174,8 @@ void Detector::genPosData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &
     
     // RF - POS
     int tlx = img.cols, tly = img.rows, brx = 0, bry = 0;
+    
+    for(int i = 0; i < DETECTOR_N_GOOD_BB; i++) cerr << scanBBs[i] << " " << scanBBs[i].overlap << endl;
     
     for(int i = 0; i < DETECTOR_N_GOOD_BB && scanBBs[i].overlap >= DETECTOR_TH_GOOD_BB; i++)
     {

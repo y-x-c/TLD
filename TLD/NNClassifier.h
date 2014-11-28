@@ -30,8 +30,8 @@ public:
     
     Mat getPatch(const Mat &img);
     
-    void getS(const Mat &img, float &Sp, float &Sn, float &Sr, float &Sc);
-    float calcSr(const Mat &img);
+    void getS(const Mat &img, float &Sp, float &Sn, float &Sr, float &Sc, int &maxSPIdx);
+    float calcSr(const Mat &img, int &maxSPIdx);
     bool update(const Mat &patch, int c);
     
     Mat newSamplesP, newSamplesN;
