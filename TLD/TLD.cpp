@@ -28,7 +28,7 @@ void TLD::setNextFrame(const cv::Mat &frame)
     
     cvtColor(frame, nextImg, CV_BGR2GRAY);
     
-    GaussianBlur(nextImg, nextImgB, Size(9, 9), 1.5);
+    GaussianBlur(nextImg, nextImgB, Size(3, 3), 1.5);
 }
 
 Rect TLD::getInside(const Rect &bb)
@@ -55,6 +55,8 @@ void TLD::track(Rect &bbTrack, TYPE_DETECTOR_RET &bbDetect)
     TYPE_DETECTOR_SCANBB trackerRet(Rect(cvRound(_trackerRet.x), cvRound(_trackerRet.y), cvRound(_trackerRet.width), cvRound(_trackerRet.height)));
     TYPE_DETECTOR_SCANBB trackerRetInside = getInside(trackerRet);
 
+    if(trackerRetInside.area() <= 0) trackerStatus = MF_TRACK_F_BOX;
+    
     if(trackerStatus == MF_TRACK_SUCCESS)
     {
         detector.updataNNPara(nextImg, trackerRetInside);
@@ -83,12 +85,12 @@ void TLD::track(Rect &bbTrack, TYPE_DETECTOR_RET &bbDetect)
     }
     else
     {
-        valid |= trackerRetInside.Sr > max(0.7f, detector.getNNThPos());
+        valid |= trackerRetInside.Sc > max(0.7f, detector.getNNThPos());
     }
     
     if(trackerStatus == MF_TRACK_SUCCESS)
     {
-        cerr << "Track bb : " << trackerRet << " Sc : " << trackerRetInside.Sc << " Sr : " << trackerRetInside.Sr << endl;
+        cerr << "Track bb : " << trackerRet << " Sc : " << trackerRetInside.Sc << " Sr : " << trackerRetInside.Sr << "  Sn : " << trackerRetInside.Sn << " Sp: " << trackerRetInside.Sp << endl;
 
         trackSc = trackerRetInside.Sc;
         finalBB = trackerRet;
@@ -260,10 +262,7 @@ void TLD::track(Rect &bbTrack, TYPE_DETECTOR_RET &bbDetect)
     
     detector.updataNNPara(nextImg, finalBBInside);
     
-    cerr << "Final bb : " << finalBB << endl;
-    
-    cerr << "final result Sn :" << finalBBInside.Sn << endl;
-    cerr << "final result Sc :" << finalBBInside.Sc << endl;
+    cerr << "Final bb : " << finalBB << " Sc : " << finalBBInside.Sc << " Sr : " << finalBBInside.Sr << "  Sn : " << finalBBInside.Sn << " Sp: " << finalBBInside.Sp << endl;
     
     if(valid)
     {
@@ -275,6 +274,7 @@ void TLD::track(Rect &bbTrack, TYPE_DETECTOR_RET &bbDetect)
             }
             else
             {
+                //valid = 0;
                 cerr << "changing too fast, not learning" << endl;
             }
         }

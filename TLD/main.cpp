@@ -280,11 +280,11 @@ void testTLD()
     //string filename(dir + "volkswagen.mpg");
     //string dir("/Users/Orthocenter/Developments/MedianFlow/");
     //string filename(dir + "me_480.mov");
-    
+    srand(time(0));
     string dir("/Users/Orthocenter/Developments/TLD/dataset2/06_car/");
     
     string initFilename(dir + "init.txt");
-    string retFilename(dir + "myRet3.txt");
+    string retFilename(dir + "myRet4.txt");
     
     FILE *fin = fopen(initFilename.c_str(), "r");
     FILE *fout = fopen(retFilename.c_str(), "w");
@@ -337,6 +337,11 @@ void testTLD()
         //viewController.refreshCache();
         viewController.drawRect(bbTrack, COLOR_BLUE);
         viewController.drawRect(tld.getBB(), COLOR_GREEN, 2);
+        
+        for(auto &bb : tld.detector.RFRET)
+        {
+            viewController.drawRect(bb, COLOR_PURPLE);
+        }
         
         for(auto &bb : bbDetect)
         {

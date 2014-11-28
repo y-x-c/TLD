@@ -1,3 +1,40 @@
+# 4
+
+[02_jumping]
+detections = 311.000000
+true detections = 312.000000
+correct detections = 311.000000
+precision=1.000000
+recall=0.996795
+f-measure= 0.998395
+
+[04_pedestrian2]
+detections = 296.000000
+true detections = 265.000000
+correct detections = 233.000000
+precision=0.787162
+recall=0.879245
+f-measure= 0.830660
+
+[03_pedestrian1]
+detections = 90.000000
+true detections = 139.000000
+correct detections = 90.000000
+precision=1.000000
+recall=0.647482
+f-measure= 0.786026
+
+[06_car]
+detections = 924.000000
+true detections = 859.000000
+correct detections = 850.000000
+precision=0.919913
+recall=0.989523
+f-measure= 0.953449
+
+
+// history
+
 # 3
 [01_david]
 detections = 760.000000

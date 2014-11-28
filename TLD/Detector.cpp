@@ -110,15 +110,23 @@ void Detector::genScanBB()
     //float widthf = patternBB.width * ((float)DETECTOR_MIN_BB_SIZE / minWH);
     //float heightf = patternBB.height * ((float)DETECTOR_MIN_BB_SIZE / minWH);
     
-    const float SCALES[] = {0.16151,0.19381,0.23257,0.27908,0.33490,0.40188,0.48225,
-        0.57870,0.69444,0.83333,1,1.20000,1.44000,1.72800,
-        2.07360,2.48832,2.98598,3.58318,4.29982,5.15978,6.19174};
+    //const float SCALES[] = {0.16151,0.19381,0.23257,0.27908,0.33490,0.40188,0.48225,
+    //    0.57870,0.69444,0.83333,1,1.20000,1.44000,1.72800,
+    //    2.07360,2.48832,2.98598,3.58318,4.29982,5.15978,6.19174};
+    vector<float> scales;
+    
+    float fac = 1.2, s;
+    scales.push_back(1.);
+    s = fac;
+    for(int i = 0; i <= 10 ; i++, s *= fac) scales.push_back(s);
+    s = fac;
+    for(int i = 0; i <= 10 ; i++, s /= fac) scales.push_back(s);
     
     //for(; widthf <= imgW && heightf <= imgH; widthf *= 1.125186016, heightf *= 1.125186016)
-    for(int i = 0 ; i < 21; i++)
+    for(int i = 0 ; i < scales.size(); i++)
     {
-        int width = round(SCALES[i] * patternBB.width);
-        int height = round(SCALES[i] * patternBB.height);
+        int width = round(scales[i] * patternBB.width);
+        int height = round(scales[i] * patternBB.height);
         //int width = cvRound(widthf);
         //int height = cvRound(heightf);
         
@@ -127,11 +135,11 @@ void Detector::genScanBB()
         if(width > imgW || height > imgH || min(width, height) < DETECTOR_MIN_BB_SIZE) continue;
         
         int dx = round(minSide * 0.1), dy = round(minSide * 0.1);
-        for(int x = 0; x + width <= imgW; x += dx)
-        //for(int x = 1; x + width <= imgW; x += dx)
+        //for(int x = 0; x + width <= imgW; x += dx)
+        for(int x = 1; x + width <= imgW; x += dx)
         {
-            for(int y = 0; y + height <= imgH; y += dy)
-            //for(int y = 1; y + height <= imgH; y += dy)
+            //for(int y = 0; y + height <= imgH; y += dy)
+            for(int y = 1; y + height <= imgH; y += dy)
             {
                 Rect bb(x, y, width, height);
                 scanBBs.push_back(TYPE_DETECTOR_SCANBB(bb));
@@ -258,6 +266,7 @@ void Detector::genNegData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &
 void Detector::dectect(const Mat &img, const Mat &imgB, TYPE_DETECTOR_RET &ret)
 {
     if(!ret.empty()) ret.clear();
+    RFRET.clear();
     
     VarClassifier varClassifier(img);
     
@@ -274,6 +283,7 @@ void Detector::dectect(const Mat &img, const Mat &imgB, TYPE_DETECTOR_RET &ret)
             if(rFClassifier.getClass(imgB(bb), bb) == CLASS_POS)
             {
                 acRF++;
+                RFRET.push_back(bb);
                 
                 if(nNClassifier.getClass(img(bb), bb))
                 {

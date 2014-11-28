@@ -155,6 +155,12 @@ float MedianFlow::calcNCC(const cv::Mat &img0, const cv::Mat &img1)
         v0 = v0.reshape(0, v0.cols * v0.rows);
         v1 = v1.reshape(0, v1.cols * v1.rows);
         
+        Scalar mean, stddev;
+        meanStdDev(v0, mean, stddev);
+        v0 -= mean.val[0];
+        meanStdDev(v1, mean, stddev);
+        v1 -= mean.val[0];
+        
         Mat v01 = v0.t() * v1;
         
         float norm0, norm1;
@@ -199,7 +205,7 @@ void MedianFlow::filterNCC(const vector<TYPE_MF_PT> &initialPts, const vector<TY
     }
 }
 
-TYPE_MF_BB MedianFlow::calcRect(const TYPE_MF_BB &rect, const vector<TYPE_MF_PT> &pts, const vector<TYPE_MF_PT> &FPts, const vector<int> &rejected, int &status)
+TYPE_MF_BB MedianFlow::calcRect(const TYPE_MF_BB &rect, const vector<TYPE_MF_PT> &pts, const vector<TYPE_MF_PT> &FPts, const vector<TYPE_MF_PT> &FBPts, const vector<int> &rejected, int &status)
 {
     const int size = int(pts.size());
     
@@ -263,9 +269,9 @@ TYPE_MF_BB MedianFlow::calcRect(const TYPE_MF_BB &rect, const vector<TYPE_MF_PT>
     
     for(int i = 0; i < size; i++)
     {
-        //if(rejected[i]) continue;
+        if(rejected[i] == MF_REJECT_OFERROR) continue;
         
-        float dist = norm(Mat(pts[i]), Mat(FPts[i]));
+        float dist = norm(Mat(pts[i]), Mat(FBPts[i]));
         
         absDist.push_back(dist);
     }
@@ -283,8 +289,8 @@ TYPE_MF_BB MedianFlow::calcRect(const TYPE_MF_BB &rect, const vector<TYPE_MF_PT>
     sort(absDist.begin(), absDist.end());
     cerr << "FB :" << absDist[(int)absDist.size() / 2] << endl;
     //if(absDist[(int)absDist.size() / 2] > MF_ERROR_DIST)
-    if(absDist[(int)absDist.size() / 2] > 30)
-    //if(medianAbsDist > 20)
+    //if(absDist[(int)absDist.size() / 2] > 30)
+    if(medianAbsDist > 10)
     {
         status = MF_TRACK_F_CONFUSION;
         cerr << "MF_TRACK_F_CONFUSION" << endl;
@@ -317,8 +323,43 @@ TYPE_MF_BB MedianFlow::trackBox(const TYPE_MF_BB &inputBox, int &status)
     vector<TYPE_MF_PT> retF, retFB;
     vector<uchar> statusF, statusFB;
     
+    retF = retFB = pts;
+    
     opticalFlow->trackPts(pts, retF, statusF);
     opticalFlowSwap->trackPts(retF, retFB, statusFB);
+    
+    // just test
+    
+//    CvPoint2D32f* points[3] = {0, 0, 0};
+//    points[0] = (CvPoint2D32f*)cvAlloc(pts.size() * sizeof(CvPoint2D32f));
+//    points[1] = (CvPoint2D32f*)cvAlloc(pts.size() * sizeof(CvPoint2D32f));
+//    points[2] = (CvPoint2D32f*)cvAlloc(pts.size() * sizeof(CvPoint2D32f));
+//    
+//    for(int i = 0; i < pts.size(); i++)
+//    {
+//        points[0][i].x = pts[i].x; points[0][i].y = pts[i].y;
+//        points[1][i].x = pts[i].x; points[1][i].y = pts[i].y;
+//        points[2][i].x = pts[i].x; points[2][i].y = pts[i].y;
+//    }
+//    
+//    char *_statusF = (char*)cvAlloc(pts.size());
+//    char *_statusFB = (char*)cvAlloc(pts.size());
+//    
+//    Mat pyri, pyrj;
+//    pyri = cvCreateImage(prevImg.size(), 8, 1);
+//    pyrj = cvCreateImage(nextImg.size(), 8, 1);
+//    
+//    cvCalcOpticalFlowPyrLK(&prevImg, &nextImg, &pyri, &pyrj, points[0], points[1], (int)pts.size(), Size(4, 4), 5, _statusF, 0, cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03), CV_LKFLOW_INITIAL_GUESSES);
+//    
+//    cvCalcOpticalFlowPyrLK(&nextImg, &prevImg, &pyrj, &pyri, points[1], points[2], (int)pts.size(), Size(4, 4), 5, _statusFB, 0, cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03), CV_LKFLOW_INITIAL_GUESSES | CV_LKFLOW_PYR_A_READY | CV_LKFLOW_PYR_B_READY);
+//    
+//    for(int i = 0; i < pts.size(); i++)
+//    {
+//        retF.push_back(TYPE_MF_PT(points[1][i]));
+//        retFB.push_back(TYPE_MF_PT(points[2][i]));
+//    }
+    
+    //
 
     vector<int> rejected(MF_NPTS * MF_NPTS);
     
@@ -330,7 +371,7 @@ TYPE_MF_BB MedianFlow::trackBox(const TYPE_MF_BB &inputBox, int &status)
     
     TYPE_MF_BB ret;
     
-    ret = calcRect(inputBox, pts, retF, rejected, status);
+    ret = calcRect(inputBox, pts, retF, retFB, rejected, status);
     
     ///// show result
     if(viewController)

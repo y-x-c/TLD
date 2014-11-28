@@ -114,13 +114,13 @@ static const int DETECTOR_MIN_BB_SIZE = 20; // minimum scanning bounding box siz
 static const float DETECTOR_WARP_NOISE = 5;
 static const bool DETECTOR_WARP_BLUR = true;
 static const float DETECTOR_WARP_SCALE = 0.02;
-static const float DETECTOR_WARP_ANGLE = 10. / 180 * CV_PI;
+static const float DETECTOR_WARP_ANGLE = 20. / 180 * CV_PI;
 
 // P-expert生成正样本时进行的warp参数
 static const float DETECTOR_UPDATE_WARP_NOISE = 5;
 static const bool DETECTOR_UPDATE_WARP_BLUR = true;
 static const float DETECTOR_UPDATE_WARP_SCALE = 0.02;
-static const float DETECTOR_UPDATE_WARP_ANGLE = 5. / 180 * CV_PI;
+static const float DETECTOR_UPDATE_WARP_ANGLE = 10. / 180 * CV_PI;
 
 static const float DETECTOR_TH_GOOD_BB = 0.6;
 static const float DETECTOR_TH_BAD_BB = 0.2;

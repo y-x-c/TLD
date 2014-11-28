@@ -69,11 +69,11 @@ void Learner::learn(const Mat &img, const Mat &imgB, const Rect &ret)
         }
     }
     
-    for(int i = 1; i < rfTrainDataset.size(); i++)
-    {
-        int r = (float)theRNG() * i;
-        swap(rfTrainDataset[i], rfTrainDataset[r]);
-    }
+//    for(int i = 1; i < rfTrainDataset.size(); i++)
+//    {
+//        int r = (float)theRNG() * i;
+//        swap(rfTrainDataset[i], rfTrainDataset[r]);
+//    }
     
     cerr << "Generated " << nCountNN << " NN negative samples and " << nCountRF << " RF negative test samples." << endl;
     

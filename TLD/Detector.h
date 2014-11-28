@@ -57,6 +57,7 @@ private:
     void train(const Mat &img, const Mat &imgB, const Rect &patternBB);
     
 public:
+    TYPE_DETECTOR_RET RFRET;
     Detector(){}
     Detector(const Mat &img, const Mat &imgB, const Rect &patternBB);
     

@@ -25,7 +25,7 @@ RandomFernsClassifier::RandomFernsClassifier(int _nFerns, int _nLeaves)
         counter.push_back(TYPE_FERN_PNCOUNTER(pow(2, nLeaves), make_pair(0, 0)));
     }
     
-    for(int i = 0; i < nFerns; i++)
+    /*for(int i = 0; i < nFerns; i++)
     {
         vector<TYPE_FERN_LEAF> leaves;
         for(int j = 0; j < nLeaves; j++)
@@ -37,6 +37,100 @@ RandomFernsClassifier::RandomFernsClassifier(int _nFerns, int _nLeaves)
             leaves.push_back(leaf);
         }
         
+        ferns.push_back(leaves);
+    }*/
+    
+    vector<TYPE_FERN_LEAF> tleave;
+    float SHI = 1. / 5;
+    float OFF = SHI;
+    
+    for(float sx = 0; sx < 1; sx += SHI)
+    {
+        if(!(sx > 0 && sx < 1)) continue;
+        
+        for(float sy = 0; sy < 1; sy += SHI)
+        {
+            if(!(sy > 0 && sy < 1)) continue;
+            
+            Point2f origin(sx, sy);
+            Point2f t, b, l, r;
+            float tmpx, tmpy;
+            
+            tmpy = sy - (getRNG() + OFF);
+            tmpy = max(0.f, tmpy);
+            t = Point2f(sx, tmpy);
+            
+            tmpy = sy + (getRNG() + OFF);
+            tmpy = min(1.f, tmpy);
+            b = Point2f(sx, tmpy);
+            
+            tmpx = sx - (getRNG() + OFF);
+            tmpx = max(0.f, tmpx);
+            l = Point2f(tmpx, sy);
+            
+            tmpx = sx + (getRNG() + OFF);
+            tmpx = min(1.f, tmpx);
+            r = Point2f(tmpx, sy);
+            
+            tleave.push_back(make_pair(origin, t));
+            tleave.push_back(make_pair(origin, b));
+            tleave.push_back(make_pair(origin, l));
+            tleave.push_back(make_pair(origin, r));
+        }
+    }
+    
+    for(float sx = SHI / 2; sx < 1; sx += SHI)
+    {
+        if(!(sx > 0 && sx < 1)) continue;
+        
+        for(float sy = SHI / 2; sy < 1; sy += SHI)
+        {
+            if(!(sy > 0 && sy < 1)) continue;
+            
+            Point2f origin(sx, sy);
+            Point2f t, b, l, r;
+            float tmpx, tmpy;
+            
+            tmpy = sy - (getRNG() + OFF);
+            tmpy = max(0.f, tmpy);
+            t = Point2f(sx, tmpy);
+            
+            tmpy = sy + (getRNG() + OFF);
+            tmpy = min(1.f, tmpy);
+            b = Point2f(sx, tmpy);
+            
+            tmpx = sx - (getRNG() + OFF);
+            tmpx = max(0.f, tmpx);
+            l = Point2f(tmpx, sy);
+            
+            tmpx = sx + (getRNG() + OFF);
+            tmpx = min(1.f, tmpx);
+            r = Point2f(tmpx, sy);
+            
+            tleave.push_back(make_pair(origin, t));
+            tleave.push_back(make_pair(origin, b));
+            tleave.push_back(make_pair(origin, l));
+            tleave.push_back(make_pair(origin, r));
+        }
+    }
+    
+    random_shuffle(tleave.begin(), tleave.end());
+    
+    int cnt = 0;
+    for(int i = 0; i < nFerns; i++)
+    {
+        vector<TYPE_FERN_LEAF> leaves;
+        
+        //Mat ou(50, 50, CV_8UC3, Scalar::all(0));
+        
+        for(int j = 0; j < nLeaves; j++)
+        {
+            //line(ou, 50 * tleave[cnt].first, 50 * tleave[cnt].second, Scalar::all(255));
+            leaves.push_back(tleave[cnt++]);
+        }
+        
+        //imshow("features", ou);
+        //waitKey();
         ferns.push_back(leaves);
     }
 }
@@ -135,11 +229,14 @@ bool RandomFernsClassifier::getClass(const Mat &img, TYPE_DETECTOR_SCANBB &sbb)
 
 void RandomFernsClassifier::train(const TYPE_TRAIN_DATA_SET &trainDataSet)
 {
-    for(auto &trainData : trainDataSet)
+    for(int b = 0; b < 2; b++) // bootstrap
     {
-        // assert : trainData.first.type() == CV_8U
-        if(trainData.second == CLASS_POS || trainData.second == CLASS_NEG)
-            update(trainData.first, trainData.second);
+        for(auto &trainData : trainDataSet)
+        {
+            // assert : trainData.first.type() == CV_8U
+            if(trainData.second == CLASS_POS || trainData.second == CLASS_NEG)
+                update(trainData.first, trainData.second);
+        }
     }
     
     for(auto &trainData : trainDataSet)
