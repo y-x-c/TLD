@@ -21,9 +21,11 @@ private:
     int curr, frame;
     Mat frames[2];
     
+    Size _frameSize;
+    
     VideoCapture *videoCapture;
     
-    string path;
+    string path, append;
     int totalFrame;
     
 public:
@@ -34,7 +36,8 @@ public:
     
     ~VideoController();
     
-    VideoController(string &path, bool _imageMode = false);
+    VideoController(const string &path);
+    VideoController(const string &path, const string &append);
     VideoController(int camera = 0);
     
     Mat getCurrFrame();

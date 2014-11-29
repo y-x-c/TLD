@@ -14,7 +14,7 @@ Sequence      |Frames	|OpenTLD(MatLab)           | # 2 | # 3 | # 4 | # 5 | #6
 10.Panda	|3000	|**0.58 / 0.63 / 0.60**| - | - | - | 0.49 / 0.53 / 0.51 | 0.57 / 0.62 / 0.59 [^5]
 
 [^1]: This is not the latest result. (Runned with small size of NN examples set)
-[^2]: This is not the latest result. It obtained before cleanning up.
-[^3]: This is not the latest result. It obtained before cleanning up.
-[^4]: This is not the latest result. It obtained before cleanning up.
-[^5]: This is not the latest result. It obtained before cleanning up.
+[^2]: This is not the latest result. It obtained before clearing up.
+[^3]: This is not the latest result. It obtained before clearing up.
+[^4]: This is not the latest result. It obtained before clearing up.
+[^5]: This is not the latest result. It obtained before clearing up.

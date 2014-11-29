@@ -210,7 +210,7 @@ void Detector::genNegData(const Mat &img, const Mat &imgB, const Mat &img32F, TY
     VarClassifier varClassifier(img);
     
     auto it = scanBBs.begin();
-    for(; it != scanBBs.end() && it->overlap >= GOODBB_OL; it++) ;
+    for(; it != scanBBs.end() && it->overlap >= BADBB_OL; it++) ;
     
     for(; it < scanBBs.end(); it++)
     {

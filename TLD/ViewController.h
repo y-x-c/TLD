@@ -44,7 +44,7 @@ public:
     
     void drawRect(const Rect_<float> &rect, const Scalar &color = COLOR_WHITE, int thickness = 1);
     
-    Rect_<float> getRect();
+    Rect getRect();
     
     static void onMouse(int event, int x, int y, int, void *);
     

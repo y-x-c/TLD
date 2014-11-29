@@ -161,7 +161,7 @@ static const bool NCC_USE_OPENCV = 0; // 1(lower speed): use matchTemplate(), 0(
 static const bool NCC_FAST = 1; // 1 : my own implementation
 static const bool RND_SHUFFLE_STD = 1;
 static const bool QUIET_MODE = 0;
-static const bool SHOW_NEW_NN_SAMPLES = 0;
+static const bool SHOW_NEW_NN_SAMPLES = 1;
 
 static const float RF_FEA_SHIFT = 1.f / 5;
 static const float RF_FEA_OFF = RF_FEA_SHIFT;

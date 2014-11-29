@@ -29,7 +29,7 @@ Rect readRect()
 
 void testOnTLDDataset()
 {
-    string dir("/Users/Orthocenter/Developments/TLD/dataset2/04_pedestrian2/");
+    string dir("/Users/Orthocenter/Developments/TLD/dataset2/03_pedestrian1/");
 
     string initFilename(dir + "init.txt");
     string retFilename(dir + "myRet6.txt");
@@ -37,7 +37,7 @@ void testOnTLDDataset()
     FILE *fin = fopen(initFilename.c_str(), "r");
     FILE *fout = fopen(retFilename.c_str(), "w");
 
-    VideoController videoController(dir, true);
+    VideoController videoController(dir, ".jpg");
     ViewController viewController(&videoController);
     
     videoController.readNextFrame();
@@ -94,7 +94,7 @@ void testOnTLDDataset()
 
 void testOnVideo()
 {
-    string filename("/Users/Orthocenter/Developments/TLD/3.m4v");
+    string filename("/Users/Orthocenter/Developments/TLD/1.m4v");
     
     VideoController videoController(filename);
     ViewController viewController(&videoController);
@@ -135,9 +135,56 @@ void testOnVideo()
 
 }
 
+
+void testOnCamera()
+{
+    VideoController videoController(0);
+    ViewController viewController(&videoController);
+    
+    videoController.readNextFrame();
+    
+    Rect rect = viewController.getRect();
+    cerr << "Input Rect : " <<  rect << endl;
+    
+    TLD tld(videoController.getCurrFrame(), rect);
+    
+    while(videoController.readNextFrame())
+    {
+        cerr << "Frame #" << videoController.frameNumber() << endl;
+        tld.setNextFrame(videoController.getCurrFrame());
+        
+        Rect bbTrack;
+        TYPE_DETECTOR_RET bbDetect;
+        
+        clock_t st = clock();
+        
+        tld.track();
+        
+        clock_t ed = clock();
+        cerr << "Time : " << (double)(ed - st) / CLOCKS_PER_SEC * 1000 << "ms" << endl;
+        
+        viewController.refreshCache();
+        viewController.drawRect(tld.getBB(), COLOR_GREEN, 2);
+        viewController.showCache();
+        
+        cerr << endl;
+    }
+    
+}
+
+void stabilize()
+{
+    
+}
+
 int main(int argc, char *argv[])
 {
-    testOnTLDDataset();
-    //testOnVideo();
+    //testOnTLDDataset();
+    testOnVideo();
+    //testOnCamera();
+    
+    stabilize();
     return 0;
 }
+
+

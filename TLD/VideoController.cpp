@@ -13,29 +13,35 @@ VideoController::~VideoController()
     if(!imageMode) delete videoCapture;
 }
 
-VideoController::VideoController(string &path, bool _imageMode):
-    curr(0), frame(0), cameraMode(false), imageMode(_imageMode)
+VideoController::VideoController(const string &path):
+    curr(0), frame(0), cameraMode(false), imageMode(false)
 {
-    if(!imageMode)
-    {
-        videoCapture = new VideoCapture(path);
-    }
-    else
-    {
-        this->path = path;
-        string frameFilename(path + "framenum.txt");
-        FILE *fin = fopen(frameFilename.c_str(), "r");
-        fscanf(fin, "%d", &totalFrame);
-        fclose(fin);
-    }
+    videoCapture = new VideoCapture(path);
     
+    _frameSize = Size(videoCapture->get(CV_CAP_PROP_FRAME_WIDTH), videoCapture->get(CV_CAP_PROP_FRAME_HEIGHT));
     // check if the video file is opened
 }
 
+VideoController::VideoController(const string &_path, const string &_append):
+    curr(0), frame(0), cameraMode(false), imageMode(true), append(_append), path(_path)
+{
+    string frameFilename(path + "framenum.txt");
+    FILE *fin = fopen(frameFilename.c_str(), "r");
+    fscanf(fin, "%d", &totalFrame);
+    fclose(fin);
+    
+    Mat tmp = imread(path + "00001" + append);
+    _frameSize = tmp.size();
+}
+
 VideoController::VideoController(int camera):
-    curr(0), frame(0), cameraMode(true)
+    curr(0), frame(0), cameraMode(true), imageMode(false)
 {
     videoCapture = new VideoCapture(camera);
+    
+    int width = videoCapture->get(CV_CAP_PROP_FRAME_WIDTH);
+    int height = videoCapture->get(CV_CAP_PROP_FRAME_HEIGHT);
+    _frameSize = Size(width * (480.f /width), height * (480.f / width));
 }
 
 Mat VideoController::getCurrFrame()
@@ -59,7 +65,7 @@ bool VideoController::readNextFrame()
         {
             char filename[20];
             sprintf(filename, "%.5d", frame);
-            string fullPath = path + filename + ".jpg";
+            string fullPath = path + filename + append;
             frames[curr] = imread(fullPath);
             return true;
         }
@@ -67,7 +73,11 @@ bool VideoController::readNextFrame()
     }
     else
     {
-        return videoCapture -> read(frames[curr]);
+        bool f = videoCapture -> read(frames[curr]);
+        
+        resize(frames[curr], frames[curr], _frameSize);
+        
+        return f;
     }
     
     return false;
@@ -75,14 +85,7 @@ bool VideoController::readNextFrame()
 
 Size VideoController::frameSize()
 {
-    if(imageMode)
-    {
-        return frames[curr].size();
-    }
-    else
-    {
-        return Size(videoCapture->get(CV_CAP_PROP_FRAME_WIDTH), videoCapture->get(CV_CAP_PROP_FRAME_HEIGHT));
-    }
+    return _frameSize;
 }
 
 int VideoController::frameNumber()

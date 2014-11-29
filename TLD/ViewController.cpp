@@ -15,7 +15,7 @@ ViewController::~ViewController()
 }
 
 ViewController::ViewController(VideoController *videoController):
-    retWindowName("Median Flow")
+    retWindowName("TLD")
 {
     this->videoController = videoController;
 }
@@ -31,7 +31,7 @@ void ViewController::drawLines(const vector<Point2f> &firstPts, const vector<Poi
 {
     for(int i = 0; i < firstPts.size(); i++)
     {
-        if(secondPts[i] == Point2f(-1, -1)) continue;
+        if(secondPts[i] == PT_ERROR) continue;
         line(cache, firstPts[i], secondPts[i], color, thickness);
     }
 }
@@ -64,45 +64,49 @@ void ViewController::onMouse(int event, int x, int y, int flags, void* param)
     pair<pair<void*, void*>, bool*> pp = *(pair<pair<void*, void*>, bool*>*)(param);
     pair<void*, void*> p = pp.first;
     
-    bool &selectDone = *((bool*)pp.second);
-    Rect_<float> &rect = *((Rect_<float>*)p.first);
+    bool &selectValid = *((bool*)pp.second);
+    Rect &rect = *((Rect*)p.first);
     ViewController &viewController = *((ViewController*)p.second);
     int width = viewController.videoController->getCurrFrame().cols;
     int height = viewController.videoController->getCurrFrame().rows;
     
+    static int x0 = -1, y0 = -1;
+    
     if(event == CV_EVENT_LBUTTONDOWN)
     {
-        selectDone = false;
-        rect = Rect_<float>(Point2f(x, y), rect.br());
+        selectValid = false;
+        x0 = x; y0 = y;
+        rect = Rect(Point2i(x0, y0), Point2i(x0, y0));
     }
     
     if(flags == CV_EVENT_FLAG_LBUTTON && event != CV_EVENT_LBUTTONDOWN)
     {
-        rect = Rect_<float>(rect.tl(), Point2f(x, y));
+        rect = Rect(Point2i(min(x0, x), min(y0, y)), Point2i(max(x0, x), max(y0, y)));
+        
         viewController.refreshCache();
         viewController.drawRect(rect);
         viewController.showCache(viewController.retWindowName);
         
-        if(rect.width >= 10 + 4 * 2 && rect.height >= 10 + 4 * 2 && rect.width <= width && rect.height <= height)
+        if(rect.width >= DETECTOR_MIN_BB_SIZE  && rect.height >= DETECTOR_MIN_BB_SIZE && rect.width <= width && rect.height <= height)
         {
-            selectDone = true;
+            selectValid = true;
         }
     }
     
     if(event == CV_EVENT_LBUTTONUP)
     {
-        if(rect.width >= 10 + 4 * 2 && rect.height >= 10 + 4 * 2 && rect.width <= width && rect.height <= height)
+        if(rect.width >= DETECTOR_MIN_BB_SIZE && rect.height >= DETECTOR_MIN_BB_SIZE && rect.width <= width && rect.height <= height)
         {
-            selectDone = true;
+            selectValid = true;
         }
         else
         {
-            rect = Rect_<float>(Point2f(-1, -1), Point2f(width + 1, height + 1));
+            rect = BB_ERROR;
         }
     }
 }
 
-Rect_<float> ViewController::getRect()
+Rect ViewController::getRect()
 {
     namedWindow(retWindowName, CV_WINDOW_AUTOSIZE);
     
@@ -112,27 +116,29 @@ Rect_<float> ViewController::getRect()
     int width = videoController->getCurrFrame().cols;
     int height = videoController->getCurrFrame().rows;
     
-    Rect_<float> rect(Point2f(), Point2f(width + 1, height + 1));
+    Rect rect(Point2d(), Point2d(width + 1, height + 1));
     pair<void*, void*> p(&rect, this);
     
-    bool selectDone = false;
+    bool selectValid = false;
     
-    pair<pair<void*, void*>, bool*> pp(p, &selectDone);
+    pair<pair<void*, void*>, bool*> pp(p, &selectValid);
     
     setMouseCallback(retWindowName, ViewController::onMouse, &pp);
     
     if(videoController->cameraMode)
     {
-        while(!(selectDone && waitKey(10) != -1))
+        while(true)
         {
             refreshCache();
             drawRect(rect);
-            showCache(retWindowName);
+            imshow(retWindowName, cache);
+            int f = waitKey(1);
+            if(selectValid && (f != -1)) break;
         }
     }
     else
     {
-        while(!selectDone)
+        while(!selectValid)
         {
             waitKey();
         }
