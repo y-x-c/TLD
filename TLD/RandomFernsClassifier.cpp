@@ -13,7 +13,7 @@ RandomFernsClassifier::RandomFernsClassifier()
     
 }
 
-RandomFernsClassifier::RandomFernsClassifier(int _nFerns, int _nLeaves)
+void RandomFernsClassifier::init(int _nFerns, int _nLeaves, const vector<float> &scales, int initW, int initH)
 {
     thPos = FERN_TH_POS;
     
@@ -22,23 +22,8 @@ RandomFernsClassifier::RandomFernsClassifier(int _nFerns, int _nLeaves)
     
     for(int i = 0; i < nFerns; i++)
     {
-        counter.push_back(TYPE_FERN_PNCOUNTER(pow(2, nLeaves), make_pair(0, 0)));
+        counter.push_back(FernCounter(pow(2, nLeaves)));
     }
-    
-    /*for(int i = 0; i < nFerns; i++)
-    {
-        vector<TYPE_FERN_LEAF> leaves;
-        for(int j = 0; j < nLeaves; j++)
-        {
-            TYPE_FERN_LEAF leaf;
-            leaf.first = Point2f(getRNG(), getRNG());
-            leaf.second = Point2f(getRNG(), getRNG());
-            
-            leaves.push_back(leaf);
-        }
-        
-        ferns.push_back(leaves);
-    }*/
     
     vector<TYPE_FERN_LEAF> tleave;
     float SHI = 1. / 5;
@@ -121,17 +106,35 @@ RandomFernsClassifier::RandomFernsClassifier(int _nFerns, int _nLeaves)
     {
         vector<TYPE_FERN_LEAF> leaves;
         
-        //Mat ou(50, 50, CV_8UC3, Scalar::all(0));
-        
         for(int j = 0; j < nLeaves; j++)
         {
-            //line(ou, 50 * tleave[cnt].first, 50 * tleave[cnt].second, Scalar::all(255));
             leaves.push_back(tleave[cnt++]);
         }
         
-        //imshow("features", ou);
-        //waitKey();
         ferns.push_back(leaves);
+    }
+    
+    for(int s = 0; s < scales.size(); s++)
+    {
+        int w = round(initW * scales[s]);
+        int h = round(initH * scales[s]);
+        
+        scalesId[make_pair(w, h)] = s;
+        
+        cmpPts.push_back(vector<vector<CmpPt> >());
+        for(int i = 0; i < nFerns; i++)
+        {
+            cmpPts[s].push_back(vector<CmpPt>());
+            for(int j = 0; j < nLeaves; j++)
+            {
+                int p1x = ferns[i][j].first.x * w;
+                int p1y = ferns[i][j].first.y * h;
+                int p2x = ferns[i][j].second.x * w;
+                int p2y = ferns[i][j].second.y * h;
+                
+                cmpPts[s][i].push_back(CmpPt(p1x, p1y, p2x, p2y));
+            }
+        }
     }
 }
 
@@ -156,7 +159,7 @@ void RandomFernsClassifier::update(const Mat &img, bool c, float p)
             for(int iFern = 0; iFern < nFerns; iFern++)
             {
                 int code = getCode(img, iFern);
-                counter[iFern][code].first++;
+                counter[iFern][code].voteP();
             }
         }
     }
@@ -169,7 +172,7 @@ void RandomFernsClassifier::update(const Mat &img, bool c, float p)
             for(int iFern = 0; iFern < nFerns; iFern++)
             {
                 int code = getCode(img, iFern);
-                counter[iFern][code].second++;
+                counter[iFern][code].voteN();
             }
         }
     }
@@ -178,16 +181,28 @@ void RandomFernsClassifier::update(const Mat &img, bool c, float p)
 int RandomFernsClassifier::getCode(const Mat &img, int idx)
 {
     int code = 0;
+    int scaleId;
+    
+    //assert(scalesId.count(make_pair(img.cols, img.rows)) > 0);
+    
+    scaleId = scalesId[make_pair(img.cols, img.rows)];
+    
     for(int i = 0; i < nLeaves; i++)
     {
-        int p1x = ferns[idx][i].first.x * img.cols;
-        int p1y = ferns[idx][i].first.y * img.rows;
-        int p2x = ferns[idx][i].second.x * img.cols;
-        int p2y = ferns[idx][i].second.y * img.rows;
+//        clock_t st = clock();
+//        int p1x = ferns[idx][i].first.x * img.cols;
+//        int p1y = ferns[idx][i].first.y * img.rows;
+//        int p2x = ferns[idx][i].second.x * img.cols;
+//        int p2y = ferns[idx][i].second.y * img.rows;
+//        clock_t ed = clock();
+//        tclock += ed - st;
+        
+        int p1x, p1y, p2x, p2y;
+        cmpPts[scaleId][idx][i].get(p1x, p1y, p2x, p2y);
         
         // use char instead of int
-        int v1 = img.at<char>(p1y, p1x);
-        int v2 = img.at<char>(p2y, p2x);
+        char v1 = img.at<char>(p1y, p1x);
+        char v2 = img.at<char>(p2y, p2x);
         
         code = (code << 1) | (v1 < v2);
     }
@@ -200,21 +215,29 @@ float RandomFernsClassifier::getPosteriors(const Mat &img)
     float sumP = 0;
     for(int i = 0; i < nFerns; i++)
     {
-        int code, p, n;
+        int code;
         code = getCode(img, i);
-        p = counter[i][code].first;
-        n = counter[i][code].second;
         
-        if(p == 0)
-            ;
-            //sumP += 0.0;
-        else
-            sumP += (float)p / (p + n);
+        sumP += counter[i][code].getPosteriors();
     }
     
     float averageP = sumP / nFerns;
     
     return averageP;
+}
+
+float RandomFernsClassifier::getSumPosteriors(const Mat &img)
+{
+    float sumP = 0;
+    for(int i = 0; i < nFerns; i++)
+    {
+        int code;
+        code = getCode(img, i);
+        
+        sumP += counter[i][code].getPosteriors();
+    }
+    
+    return sumP;
 }
 
 bool RandomFernsClassifier::getClass(const Mat &img, TYPE_DETECTOR_SCANBB &sbb)

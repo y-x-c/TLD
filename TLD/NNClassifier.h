@@ -28,10 +28,10 @@ public:
 
     float calcNCC(const Mat &patch1, const Mat &patch2);
     
-    Mat getPatch(const Mat &img);
+    Mat getPatch(const Mat &img32F);
     
-    void getS(const Mat &img, float &Sp, float &Sn, float &Sr, float &Sc, int &maxSPIdx);
-    float calcSr(const Mat &img, int &maxSPIdx);
+    void getS(const Mat &img32F, float &Sp, float &Sn, float &Sr, float &Sc, int &maxSPIdx);
+    float calcSr(const Mat &img32F, int &maxSPIdx);
     bool update(const Mat &patch, int c);
     
     Mat newSamplesP, newSamplesN;
@@ -49,7 +49,7 @@ public:
     void showModel();
     
     // assert : img.type() == CV_8U
-    bool getClass(const Mat &img, TYPE_DETECTOR_SCANBB &sbb);
+    bool getClass(const Mat &img32F, TYPE_DETECTOR_SCANBB &sbb);
 };
 
 #endif /* defined(__TLD__NNClassifier__) */

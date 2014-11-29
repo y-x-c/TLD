@@ -9,8 +9,7 @@
 #include "Detector.h"
 
 
-Detector::Detector(const Mat &img, const Mat &imgB, const Rect &_patternBB):
-    rFClassifier(RandomFernsClassifier(DETECTOR_NFERNS, DETECTOR_NLEAVES))
+void Detector::init(const Mat &img, const Mat &imgB, const Mat &img32F, const Rect &_patternBB)
 {
     // assert : img.type() == CV_8U
     
@@ -20,6 +19,8 @@ Detector::Detector(const Mat &img, const Mat &imgB, const Rect &_patternBB):
     imgH = img.rows;
     
     genScanBB();
+    
+    rFClassifier.init(DETECTOR_NFERNS, DETECTOR_NLEAVES, scales, patternBB.width, patternBB.height);
     
     Scalar mean, dev;
     meanStdDev(img(scanBBs[0]), mean, dev);
@@ -31,7 +32,7 @@ Detector::Detector(const Mat &img, const Mat &imgB, const Rect &_patternBB):
     
     updatePatchGenerator = PatchGenerator(0, 0, DETECTOR_UPDATE_WARP_NOISE, DETECTOR_UPDATE_WARP_BLUR, 1. - DETECTOR_UPDATE_WARP_SCALE, 1. + DETECTOR_UPDATE_WARP_SCALE, -DETECTOR_UPDATE_WARP_ANGLE, DETECTOR_UPDATE_WARP_ANGLE, -DETECTOR_UPDATE_WARP_ANGLE, DETECTOR_UPDATE_WARP_ANGLE);
     
-    train(img, imgB, patternBB);
+    train(img, imgB, img32F, patternBB);
 }
 
 Detector::~Detector()
@@ -39,10 +40,10 @@ Detector::~Detector()
     
 }
 
-void Detector::train(const Mat &img, const Mat &imgB, const TYPE_DETECTOR_BB &patternBB)
+void Detector::train(const Mat &img, const Mat &imgB, const Mat &img32F, const TYPE_DETECTOR_BB &patternBB)
 {
-    genPosData(img, imgB, trainDataSetNN, trainDataSetRF);
-    genNegData(img, imgB, trainDataSetNN, trainDataSetRF);
+    genPosData(img, imgB, img32F, trainDataSetNN, trainDataSetRF);
+    genNegData(img, imgB, img32F, trainDataSetNN, trainDataSetRF);
     
     for(int i = 1; i < trainDataSetRF.size(); i++)
     {
@@ -100,7 +101,19 @@ void Detector::sortByOverlap(const TYPE_DETECTOR_BB &bb, bool rand)
     
         for(; it != scanBBs.end() && it->overlap >= DETECTOR_TH_BAD_BB; it++) ;
     
-        random_shuffle(it, scanBBs.end());
+        if(RND_SHUFFLE_STD)
+        {
+            random_shuffle(it, scanBBs.end());
+        }
+        else
+        {
+            int shift = (int)(it - scanBBs.begin());
+            int end = int(scanBBs.size() - shift);
+            for(int i = 0; i <= end; i++)
+            {
+                swap(scanBBs[i + shift], scanBBs[(float)theRNG() * i + shift]);
+            }
+        }
     }
 }
 
@@ -113,7 +126,6 @@ void Detector::genScanBB()
     //const float SCALES[] = {0.16151,0.19381,0.23257,0.27908,0.33490,0.40188,0.48225,
     //    0.57870,0.69444,0.83333,1,1.20000,1.44000,1.72800,
     //    2.07360,2.48832,2.98598,3.58318,4.29982,5.15978,6.19174};
-    vector<float> scales;
     
     float fac = 1.2, s;
     scales.push_back(1.);
@@ -143,10 +155,12 @@ void Detector::genScanBB()
             {
                 Rect bb(x, y, width, height);
                 scanBBs.push_back(TYPE_DETECTOR_SCANBB(bb));
+                scanBBs[scanBBs.size() - 1].scaleId = i;
             }
             
             Rect bb(x, imgH - height, width, height);
             scanBBs.push_back(TYPE_DETECTOR_SCANBB(bb));
+            scanBBs[scanBBs.size() - 1].scaleId = i;
         }
     }
     
@@ -165,17 +179,15 @@ void Detector::genScanBB()
 //    updatePatchGenerator(img, Point(img.cols / 2, img.rows / 2), warped, img.size(), theRNG());
 //}
 
-void Detector::genPosData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &trainDataSetNN, TYPE_TRAIN_DATA_SET &trainDataSetRF, const int nWarped)
+void Detector::genPosData(const Mat &img, const Mat &imgB, const Mat &img32F, TYPE_TRAIN_DATA_SET &trainDataSetNN, TYPE_TRAIN_DATA_SET &trainDataSetRF, const int nWarped)
 {
     int count = 0;
     
     // NN - POS
-    trainDataSetNN.push_back(make_pair(img(scanBBs[0]), CLASS_POS));
+    trainDataSetNN.push_back(make_pair(img32F(scanBBs[0]), CLASS_POS));
     
     // RF - POS
     int tlx = img.cols, tly = img.rows, brx = 0, bry = 0;
-    
-    for(int i = 0; i < DETECTOR_N_GOOD_BB; i++) cerr << scanBBs[i] << " " << scanBBs[i].overlap << endl;
     
     for(int i = 0; i < DETECTOR_N_GOOD_BB && scanBBs[i].overlap >= DETECTOR_TH_GOOD_BB; i++)
     {
@@ -219,7 +231,7 @@ void Detector::genPosData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &
     cerr << "Generate 1 NN positive samples and " << count << " RF positive samples." << endl;
 }
 
-void Detector::genNegData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &trainDataSetNN, TYPE_TRAIN_DATA_SET &trainDataSetRF)
+void Detector::genNegData(const Mat &img, const Mat &imgB, const Mat &img32F, TYPE_TRAIN_DATA_SET &trainDataSetNN, TYPE_TRAIN_DATA_SET &trainDataSetRF)
 {
     int countRF = 0, countRFT = 0;
     int countNN = 0, countNNT = 0;
@@ -238,14 +250,14 @@ void Detector::genNegData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &
         // NN - NEG
         if(countNN <= 100 && c == CLASS_NEG)
         {
-            TYPE_TRAIN_DATA trainDataNN(make_pair(img(bb), c));
+            TYPE_TRAIN_DATA trainDataNN(make_pair(img32F(bb), c));
             trainDataSetNN.push_back(trainDataNN);
             countNN++;
         }
         
         if(countNNT <= 100 && c == CLASS_TEST_NEG)
         {
-            TYPE_TRAIN_DATA trainDataNN(make_pair(img(bb), c));
+            TYPE_TRAIN_DATA trainDataNN(make_pair(img32F(bb), c));
             trainDataSetNN.push_back(trainDataNN);
             countNNT++;
         }
@@ -262,10 +274,10 @@ void Detector::genNegData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &
     cerr << "Generate " << countRF << " RF negative samples and " << countRFT << " RF negative test samples." << endl;
 }
 
-void Detector::dectect(const Mat &img, const Mat &imgB, TYPE_DETECTOR_RET &ret)
+void Detector::dectect(const Mat &img, const Mat &imgB, const Mat &img32F, TYPE_DETECTOR_RET &ret)
 {
-    if(!ret.empty()) ret.clear();
-    RFRET.clear();
+    ret.clear();
+    rfRet.clear();
     
     VarClassifier varClassifier(img);
     
@@ -282,27 +294,36 @@ void Detector::dectect(const Mat &img, const Mat &imgB, TYPE_DETECTOR_RET &ret)
             if(rFClassifier.getClass(imgB(bb), bb) == CLASS_POS)
             {
                 acRF++;
-                RFRET.push_back(bb);
-                
-                if(nNClassifier.getClass(img(bb), bb))
-                {
-                    ret.push_back(bb);
-
-                    scanBB.status = DETECTOR_ACCEPTED;
-                }
-                else
-                {
-                    scanBB.status = DETECTOR_REJECT_NN;
-                }
+                rfRet.push_back(bb);
             }
             else
             {
-                scanBB.status = DETECTOR_REJECT_RF;
+                bb.status = DETECTOR_REJECT_RF;
             }
         }
         else
         {
-            scanBB.status = DETECTOR_REJECT_VAR;
+            bb.status = DETECTOR_REJECT_VAR;
+        }
+    }
+    
+    if(rfRet.size() > 100)
+    {
+        sort(rfRet.begin(), rfRet.end(), TYPE_DETECTOR_SCANBB::cmpP);
+        rfRet.resize(100);
+    }
+
+    for(auto &bb : rfRet)
+    {
+        if(nNClassifier.getClass(img32F(bb), bb))
+        {
+            ret.push_back(bb);
+            
+            bb.status = DETECTOR_ACCEPTED;
+        }
+        else
+        {
+            bb.status = DETECTOR_REJECT_NN;
         }
     }
     
@@ -311,9 +332,9 @@ void Detector::dectect(const Mat &img, const Mat &imgB, TYPE_DETECTOR_RET &ret)
     cerr << "- After Nearest Neighbor Classifier " << ret.size() << " bounding boxes." << endl;
 }
 
-void Detector::updataNNPara(const cv::Mat &img, TYPE_DETECTOR_SCANBB &sbb)
+void Detector::updataNNPara(const cv::Mat &img32F, TYPE_DETECTOR_SCANBB &sbb)
 {
-    nNClassifier.getClass(img(sbb), sbb);
+    nNClassifier.getClass(img32F(sbb), sbb);
 }
 
 float Detector::getNNThPos()

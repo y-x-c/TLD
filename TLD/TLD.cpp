@@ -13,8 +13,10 @@ bb(_bb), valid(false)
 {
     setNextFrame(img);
     
-    detector = Detector(nextImg, nextImgB, _bb);
-    learner = Learner(&detector);
+    detector.init(nextImg, nextImgB, nextImg32F, _bb);
+    learner.init(&detector);
+    
+    valid = true;
 }
 
 TLD::~TLD()
@@ -29,6 +31,8 @@ void TLD::setNextFrame(const cv::Mat &frame)
     cvtColor(frame, nextImg, CV_BGR2GRAY);
     
     GaussianBlur(nextImg, nextImgB, Size(3, 3), 1.5);
+    
+    nextImg.convertTo(nextImg32F, CV_32F);
 }
 
 Rect TLD::getInside(const Rect &bb)
@@ -59,12 +63,12 @@ void TLD::track(Rect &bbTrack, TYPE_DETECTOR_RET &bbDetect)
     
     if(trackerStatus == MF_TRACK_SUCCESS)
     {
-        detector.updataNNPara(nextImg, trackerRetInside);
+        detector.updataNNPara(nextImg32F, trackerRetInside);
     }
     
     //detect
     TYPE_DETECTOR_RET detectorRet;
-    detector.dectect(nextImg, nextImgB, detectorRet);
+    detector.dectect(nextImg, nextImgB, nextImg32F, detectorRet);
     
     //integrate
     float trackSc = -1;
@@ -260,7 +264,7 @@ void TLD::track(Rect &bbTrack, TYPE_DETECTOR_RET &bbDetect)
         }
     }
     
-    detector.updataNNPara(nextImg, finalBBInside);
+    detector.updataNNPara(nextImg32F, finalBBInside);
     
     cerr << "Final bb : " << finalBB << " Sc : " << finalBBInside.Sc << " Sr : " << finalBBInside.Sr << "  Sn : " << finalBBInside.Sn << " Sp: " << finalBBInside.Sp << endl;
     
@@ -270,7 +274,7 @@ void TLD::track(Rect &bbTrack, TYPE_DETECTOR_RET &bbDetect)
         {
             if(finalBBInside.Sn < 0.95 && finalBBInside.Sr > 0.5)
             {
-                learner.learn(nextImg, nextImgB, finalBB);
+                learner.learn(nextImg, nextImgB, nextImg32F, finalBB);
             }
             else
             {

@@ -26,12 +26,12 @@ private:
     Detector *detector;
     
 public:
-    Learner():detector(NULL){}
-    Learner(Detector *detector);
+    Learner(){}
+    void init(Detector *detector);
     
     ~Learner();
     
-    void learn(const Mat &img, const Mat &imgB, const Rect &ret);
+    void learn(const Mat &img, const Mat &imgB, const Mat &img32F, const Rect &ret);
 };
 
 #endif /* defined(__TLD__Learner__) */

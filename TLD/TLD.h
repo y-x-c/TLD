@@ -33,7 +33,7 @@ public:
     Detector detector;
     Learner learner;
     
-    Mat prevImg, nextImg, nextImgB;
+    Mat prevImg, nextImg, nextImgB, nextImg32F;
     Rect bb;
     
     bool valid;

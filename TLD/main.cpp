@@ -281,10 +281,10 @@ void testTLD()
     //string dir("/Users/Orthocenter/Developments/MedianFlow/");
     //string filename(dir + "me_480.mov");
     //srand(time(0));
-    string dir("/Users/Orthocenter/Developments/TLD/dataset2/10_panda/");
-    
+    string dir("/Users/Orthocenter/Developments/TLD/dataset2/04_pedestrian2/");
+
     string initFilename(dir + "init.txt");
-    string retFilename(dir + "myRet5.txt");
+    string retFilename(dir + "myRet6.txt");
     
     FILE *fin = fopen(initFilename.c_str(), "r");
     FILE *fout = fopen(retFilename.c_str(), "w");
@@ -317,8 +317,14 @@ void testTLD()
         
         Rect bbTrack;
         TYPE_DETECTOR_RET bbDetect;
+        
+        clock_t st = clock();
       
         tld.track(bbTrack, bbDetect);
+        
+        clock_t ed = clock();
+        
+        cerr << "Time : " << (double)(ed - st) / CLOCKS_PER_SEC * 1000 << "ms" << endl;
 
         viewController.refreshCache();
         

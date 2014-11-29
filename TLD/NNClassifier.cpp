@@ -30,25 +30,54 @@ float NNClassifier::calcNCC(const Mat &patch1, const Mat &patch2)
     }
     else
     {
-        Mat v0, v1; // convert image to 1 dimension vector
+        if(NCC_FAST)
+        {
+            Mat v0, v1;
+            
+            v0 = patch1.reshape(0, 1);
+            v1 = patch2.reshape(0, 1);
+            
+            double norm0 = 0., norm1 = 0., v0v1 = 0.;
+            
+            float *data0 = v0.ptr<float>(0);
+            float *data1 = v1.ptr<float>(0);
+            
+            for(int i = 0; i < v0.cols; i++)
+            {
+                norm0 += data0[i] * data0[i];
+                norm1 += data1[i] * data1[i];
+                v0v1 += data0[i] * data1[i];
+            }
         
-        patch1.convertTo(v0, CV_32F);
-        patch2.convertTo(v1, CV_32F);
-        
-        v0 = v0.reshape(0, v0.cols * v0.rows);
-        v1 = v1.reshape(0, v1.cols * v1.rows);
-        
-        Mat v01 = v0.t() * v1;
-        
-        float norm0, norm1;
-        
-        norm0 = norm(v0);
-        norm1 = norm(v1);
-        
-        // should not add "abs"
-        return v01.at<float>(0) / norm0 / norm1;
+            norm0 = sqrt(norm0);
+            norm1 = sqrt(norm1);
+            
+            double ret = v0v1 / norm0 / norm1;
+            return ret;
+        }
+        else
+        {
+            Mat v0, v1; // convert image to 1 dimension vector
+            
+            v0 = patch1;
+            v1 = patch2;
+            
+            v0 = v0.reshape(0, v0.cols * v0.rows);
+            v1 = v1.reshape(0, v1.cols * v1.rows);
+            
+            Mat v01 = v0.t() * v1;
+            
+            float norm0, norm1;
+            
+            norm0 = norm(v0);
+            norm1 = norm(v1);
+            
+            // should not add "abs"
+            float ret = v01.at<float>(0) / norm0 / norm1;
+            
+            return ret;
+        }
     }
-
 }
 
 void NNClassifier::getS(const cv::Mat &img, float &Sp, float &Sn, float &Sr, float &Sc, int &maxSPIdx)
@@ -91,10 +120,10 @@ void NNClassifier::getS(const cv::Mat &img, float &Sp, float &Sn, float &Sr, flo
     Sp = maxSp;
 }
 
-float NNClassifier::calcSr(const Mat &img, int &maxSPIdx)
+float NNClassifier::calcSr(const Mat &img32F, int &maxSPIdx)
 {
     float Sr, dummy;
-    getS(img, dummy, dummy, Sr, dummy, maxSPIdx);
+    getS(img32F, dummy, dummy, Sr, dummy, maxSPIdx);
     return Sr;
 }
 
@@ -191,24 +220,24 @@ void NNClassifier::train(const TYPE_TRAIN_DATA_SET &trainDataSet)
     }
 }
     
-Mat NNClassifier::getPatch(const Mat &img)
+Mat NNClassifier::getPatch(const Mat &img32F)
 {
     Mat patch;
     
-    resize(img, patch, Size(NN_PATCH_SIZE, NN_PATCH_SIZE));
+    resize(img32F, patch, Size(NN_PATCH_SIZE, NN_PATCH_SIZE));
     
     Scalar mean, stddev;
     
     meanStdDev(patch, mean, stddev);
-    patch.convertTo(patch, CV_32F);
+    //patch.convertTo(patch, CV_32F);
     patch -= mean.val[0];   // think more
 
     return patch;
 }
 
-bool NNClassifier::getClass(const Mat &img, TYPE_DETECTOR_SCANBB &sbb)
+bool NNClassifier::getClass(const Mat &img32F, TYPE_DETECTOR_SCANBB &sbb)
 {
-    getS(img, sbb.Sp, sbb.Sn, sbb.Sr, sbb.Sc, sbb.maxSPIdx);
+    getS(img32F, sbb.Sp, sbb.Sn, sbb.Sr, sbb.Sc, sbb.maxSPIdx);
     
     return sbb.Sr > thPos ? CLASS_POS : CLASS_NEG;
 }

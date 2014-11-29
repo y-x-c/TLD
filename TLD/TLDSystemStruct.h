@@ -27,7 +27,6 @@ typedef vector<TYPE_TRAIN_DATA> TYPE_TRAIN_DATA_SET;
 
 typedef pair<Point2f, Point2f> TYPE_FERN_LEAF; // save pixel comparision
 typedef vector<vector<TYPE_FERN_LEAF> > TYPE_FERN_FERNS; // save all ferns
-typedef vector<pair<int, int> > TYPE_FERN_PNCOUNTER; // save vote data of a fern
 
 static const TYPE_OF_PT PT_ERROR = TYPE_OF_PT(-1, -1);
 static const TYPE_MF_BB BB_ERROR = TYPE_MF_BB(PT_ERROR, PT_ERROR);
@@ -42,7 +41,7 @@ public:
     float var;
     float posterior;
     float Sp, Sn, Sr, Sc;
-    int maxSPIdx;
+    int maxSPIdx, scaleId;
     
     TYPE_DETECTOR_SCANBB():
         TYPE_DETECTOR_BB(TYPE_DETECTOR_BB(-1, -1, 0, 0)), overlap(-1), status(-1), posterior(-1), Sp(-1), Sn(-1), Sr(-1), Sc(-1)
@@ -58,6 +57,11 @@ public:
     static bool cmpOL(const TYPE_DETECTOR_SCANBB &a, const TYPE_DETECTOR_SCANBB &b)
     {
         return a.overlap > b.overlap;
+    }
+    
+    static bool cmpP(const TYPE_DETECTOR_SCANBB &a, const TYPE_DETECTOR_SCANBB &b)
+    {
+        return a.posterior > b.posterior;
     }
 };
 typedef vector<TYPE_DETECTOR_SCANBB> TYPE_DETECTOR_SCANBBS;
@@ -134,5 +138,7 @@ static const char DETECTOR_REJECT_RF = 3;
 static const char DETECTOR_REJECT_NN = 4;
 
 static const bool NCC_USE_OPENCV = 0; // 1(lower speed): use matchTemplate(), 0(faster)
+static const bool NCC_FAST = 1; // 1 : my own implementation
+static const bool RND_SHUFFLE_STD = 1;
 
 #endif

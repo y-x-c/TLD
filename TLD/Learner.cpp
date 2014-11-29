@@ -8,10 +8,9 @@
 
 #include "Learner.h"
 
-Learner::Learner(Detector *_detector):
-    detector(_detector)
+void Learner::init(Detector *_detector)
 {
-    
+    detector = _detector;
 }
 
 Learner::~Learner()
@@ -19,7 +18,7 @@ Learner::~Learner()
     
 }
 
-void Learner::learn(const Mat &img, const Mat &imgB, const Rect &ret)
+void Learner::learn(const Mat &img, const Mat &imgB, const Mat &img32F, const Rect &ret)
 {
     cerr << "[Learning]" << endl;
     
@@ -31,7 +30,7 @@ void Learner::learn(const Mat &img, const Mat &imgB, const Rect &ret)
     rfTrainDataset.clear();
     
     // P-expert
-    detector->genPosData(img, imgB, nnTrainDataset, rfTrainDataset, 10);
+    detector->genPosData(img, imgB, img32F, nnTrainDataset, rfTrainDataset, 10);
     
     // N-expert - NN
     int nCountNN = 0;
@@ -45,7 +44,7 @@ void Learner::learn(const Mat &img, const Mat &imgB, const Rect &ret)
             {
                 nCountNN++;
                 
-                TYPE_TRAIN_DATA trainData(make_pair(img(sbb), CLASS_NEG));
+                TYPE_TRAIN_DATA trainData(make_pair(img32F(sbb), CLASS_NEG));
                 nnTrainDataset.push_back(trainData);
             }
         }
@@ -70,12 +69,6 @@ void Learner::learn(const Mat &img, const Mat &imgB, const Rect &ret)
             }
         }
     }
-
-//    for(int i = 1; i < rfTrainDataset.size(); i++)
-//    {
-//        int r = (float)theRNG() * i;
-//        swap(rfTrainDataset[i], rfTrainDataset[r]);
-//    }
     
     cerr << "Generated " << nCountNN << " NN negative samples and " << nCountRF << " RF negative test samples." << endl;
     

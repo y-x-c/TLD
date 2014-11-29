@@ -28,7 +28,6 @@ class Detector
 {
     friend class Learner;
 private:
-
     RandomFernsClassifier rFClassifier;
     NNClassifier nNClassifier;
     
@@ -40,6 +39,10 @@ private:
     PatchGenerator updatePatchGenerator;
     TYPE_TRAIN_DATA_SET trainDataSetNN, trainDataSetRF;
     
+    TYPE_DETECTOR_RET rfRet;
+    
+    vector<float> scales;
+    
     float overlap(const TYPE_DETECTOR_BB &bb1, const TYPE_DETECTOR_BB &bb2);
     
     // scanning-window grid
@@ -50,20 +53,19 @@ private:
     
     //void genWarped(const Mat &img, Mat &warped);
     //void genUpdateWarped(const Mat &img, Mat &warped);
-    void genPosData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &trainDataSetNN, TYPE_TRAIN_DATA_SET &trainDataSetRF, const int nWarped = DETECTOR_N_WARPED);
-    void genNegData(const Mat &img, const Mat &imgB, TYPE_TRAIN_DATA_SET &trainDataSetNN, TYPE_TRAIN_DATA_SET &trainDataSetRF);
+    void genPosData(const Mat &img, const Mat &imgB, const Mat &img32F, TYPE_TRAIN_DATA_SET &trainDataSetNN, TYPE_TRAIN_DATA_SET &trainDataSetRF, const int nWarped = DETECTOR_N_WARPED);
+    void genNegData(const Mat &img, const Mat &imgB, const Mat &img32F, TYPE_TRAIN_DATA_SET &trainDataSetNN, TYPE_TRAIN_DATA_SET &trainDataSetRF);
     
     void update();
-    void train(const Mat &img, const Mat &imgB, const Rect &patternBB);
+    void train(const Mat &img, const Mat &imgB, const Mat &img32F, const Rect &patternBB);
     
 public:
-    TYPE_DETECTOR_RET RFRET;
     Detector(){}
-    Detector(const Mat &img, const Mat &imgB, const Rect &patternBB);
+    void init(const Mat &img, const Mat &imgB, const Mat &img32F, const Rect &patternBB);
     
-    void dectect(const Mat &img, const Mat &imgB, TYPE_DETECTOR_RET &ret);
+    void dectect(const Mat &img, const Mat &imgB, const Mat &img32F, TYPE_DETECTOR_RET &ret);
     
-    void updataNNPara(const Mat &img, TYPE_DETECTOR_SCANBB &sbb);
+    void updataNNPara(const Mat &img32F, TYPE_DETECTOR_SCANBB &sbb);
     float getNNThPos();
     
     ~Detector();
