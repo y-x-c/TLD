@@ -26,261 +26,9 @@ Rect readRect()
     
     return Rect(x, y, width, height);
 }
-//
-//void testRandomFernsClassifier()
-//{
-//    string filename("/Users/Orthocenter/Developments/MedianFlow/car.mpg");
-//    VideoController videoController(filename);
-//    ViewController viewController(&videoController);
-//    
-//    videoController.readNextFrame();
-//    
-//    RandomFernsClassifier randomFernsClassifier(10, 13);
-//    
-//    RandomFernsClassifier::tTrainDataSet trainDataSet;
-//    
-//    cerr << "Draw 20 positive bounding boxs" << endl;
-//    
-//    for(int i = 0; i < 20; i++)
-//    {
-//        cerr << "No. " << i << endl;
-//        
-//        //Rect rect = viewController.getRect();
-//        Rect rect = readRect();
-//        
-//        cout << rect << endl;
-//        
-//        RandomFernsClassifier::tTrainData trainData(make_pair(videoController.getCurrFrame()(rect), randomFernsClassifier.cPos));
-//        
-//        trainDataSet.push_back(trainData);
-//    }
-//    
-//    cerr << "Draw 20 negative bounding boxs" << endl;
-//    
-//    for(int i = 0; i < 20; i++)
-//    {
-//        cerr << "No. " << i << endl;
-//        
-//        //Rect rect = viewController.getRect();
-//        Rect rect = readRect();
-//        
-//        cout << rect << endl;
-//        
-//        RandomFernsClassifier::tTrainData trainData(make_pair(videoController.getCurrFrame()(rect), randomFernsClassifier.cNeg));
-//        
-//        trainDataSet.push_back(trainData);
-//    }
-//
-//    cerr << "training..." << endl;
-//    randomFernsClassifier.train(trainDataSet);
-//    cerr << "finished..." << endl;
-//    
-//    for(;;)
-//    {
-//        Rect rect = viewController.getRect();
-//        
-//        cout << randomFernsClassifier.getClass(videoController.getCurrFrame()(rect)) << endl;
-//    }
-//}
-//
-//void testNNClassifier()
-//{
-//    string filename("/Users/Orthocenter/Developments/MedianFlow/car.mpg");
-//    VideoController videoController(filename);
-//    ViewController viewController(&videoController);
-//    
-//    videoController.readNextFrame();
-//    
-//    NNClassifier nNClassifier;
-//    
-//    NNClassifier::tTrainDataSet trainDataSet;
-//    
-//    cerr << "Draw 20 positive bounding boxs" << endl;
-//    
-//    for(int i = 0; i < 20; i++)
-//    {
-//        cerr << "No. " << i << endl;
-//        
-//        //Rect rect = viewController.getRect();
-//        Rect rect = readRect();
-//        
-//        cout << rect << endl;
-//        
-//        NNClassifier::tTrainData trainData(make_pair(videoController.getCurrFrame()(rect), nNClassifier.cPos));
-//        
-//        trainDataSet.push_back(trainData);
-//    }
-//    
-//    cerr << "Draw 20 negative bounding boxs" << endl;
-//    
-//    for(int i = 0; i < 20; i++)
-//    {
-//        cerr << "No. " << i << endl;
-//        
-//        //Rect rect = viewController.getRect();
-//        Rect rect = readRect();
-//        
-//        cout << rect << endl;
-//        
-//        NNClassifier::tTrainData trainData(make_pair(videoController.getCurrFrame()(rect), nNClassifier.cNeg));
-//        
-//        trainDataSet.push_back(trainData);
-//    }
-//    
-//    cerr << "training..." << endl;
-//    nNClassifier.train(trainDataSet);
-//    cerr << "finished..." << endl;
-//    
-//    //nNClassifier.showModel();
-//    
-//    for(;;)
-//    {
-//        Rect rect = viewController.getRect();
-//        
-//        cout << nNClassifier.getClass(videoController.getCurrFrame()(rect)) << endl;
-//    }
-//
-//}
-//
-//
-//void testRFNNClassifier()
-//{
-//    string filename("/Users/Orthocenter/Developments/MedianFlow/car.mpg");
-//    VideoController videoController(filename);
-//    ViewController viewController(&videoController);
-//    
-//    videoController.readNextFrame();
-//    
-//    RandomFernsClassifier rFClassifier(10, 5);
-//    
-//    RandomFernsClassifier::tTrainDataSet rFTrainDataSet;
-//    
-//    NNClassifier nNClassifier;
-//    
-//    NNClassifier::tTrainDataSet trainDataSet;
-//    
-//    cerr << "Draw 20 positive bounding boxs" << endl;
-//    
-//    for(int i = 0; i < 20; i++)
-//    {
-//        cerr << "No. " << i << endl;
-//        
-//        //Rect rect = viewController.getRect();
-//        Rect rect = readRect();
-//        
-//        cout << rect << endl;
-//        
-//        RandomFernsClassifier::tTrainData rFTrainData(make_pair(videoController.getCurrFrame()(rect), rFClassifier.cPos));
-//        NNClassifier::tTrainData trainData(make_pair(videoController.getCurrFrame()(rect), nNClassifier.cPos));
-//        
-//        rFTrainDataSet.push_back(rFTrainData);
-//        trainDataSet.push_back(trainData);
-//    }
-//    
-//    cerr << "Draw 20 negative bounding boxs" << endl;
-//    
-//    for(int i = 0; i < 20; i++)
-//    {
-//        cerr << "No. " << i << endl;
-//        
-//        //Rect rect = viewController.getRect();
-//        Rect rect = readRect();
-//        
-//        cout << rect << endl;
-//        
-//        RandomFernsClassifier::tTrainData rFTrainData(make_pair(videoController.getCurrFrame()(rect), rFClassifier.cNeg));
-//
-//        NNClassifier::tTrainData trainData(make_pair(videoController.getCurrFrame()(rect), nNClassifier.cNeg));
-//        
-//        rFTrainDataSet.push_back(rFTrainData);
-//        trainDataSet.push_back(trainData);
-//    }
-//    
-//    cerr << "training..." << endl;
-//    nNClassifier.train(trainDataSet);
-//    rFClassifier.train(rFTrainDataSet);
-//    cerr << "finished..." << endl;
-//    
-//    //nNClassifier.showModel();
-//    
-//    for(;;)
-//    {
-//        Rect rect = viewController.getRect();
-//        
-//        cout << "RF: " << rFClassifier.getClass(videoController.getCurrFrame()(rect)) << endl;
-//        cout << "NN: " << nNClassifier.getClass(videoController.getCurrFrame()(rect)) << endl;
-//    }
-//    
-//}
-//
-//void testDetector()
-//{
-//    string filename("/Users/Orthocenter/Developments/MedianFlow/scale.m4v");
-//    VideoController videoController(filename);
-//    ViewController viewController(&videoController);
-//    
-//    videoController.readNextFrame();
-//    
-//    Rect rect = viewController.getRect();
-//    
-//    Detector detector(videoController.getCurrFrame(), rect);
-//    
-//    while(videoController.readNextFrame())
-//    {
-//        //viewController.refreshCache();
-//        //viewController.showCache();
-//        //waitKey(1);
-//    
-//        Detector::tRet ret;
-//        detector.dectect(videoController.getCurrFrame(), ret);
-//    
-//        viewController.refreshCache();
-//        for(auto bb : ret)
-//        {
-//            viewController.drawRect(bb);
-//        }
-//        viewController.showCache();
-//        waitKey(1);
-//    }
-//}
-//
-//void testVarClassifier()
-//{
-//    Mat test = (Mat_<uchar>(3, 3) << 0, 1, 2, 3, 4, 1, 2, 3, 4);
-//    cout << test << endl;
-//    VarClassifier var(test);
-//    Rect rect(0, 1, 2, 2);
-//    cout << var.getVar(rect);
-//    
-//    Mat test2(test(rect));
-//    cout << test2 << endl;
-//    Scalar mean, std;
-//    meanStdDev(test2, mean, std);
-//    
-//    cout << " " << std.val[0] * std.val[0] << endl;
-//}
 
-void testTLD()
+void testOnTLDDataset()
 {
-    //string dir("/Users/Orthocenter/Developments/TLD/datasets/01_david/");
-    //string filename(dir + "david.mpg");
-    //string dir("/Users/Orthocenter/Developments/TLD/datasets/02_jumping/");
-    //string filename(dir + "jumping.mpg");
-    //string dir("/Users/Orthocenter/Developments/TLD/datasets/03_pedestrian1/");
-    //string filename(dir + "pedestrian1.mpg");
-    //string dir("/Users/Orthocenter/Developments/TLD/datasets/04_pedestrian2/");
-    //string filename(dir + "pedestrian2.mpg");
-    //string dir("/Users/Orthocenter/Developments/TLD/datasets/05_pedestrian3/");
-    //string filename(dir + "pedestrian3.mpg");
-    //string dir("/Users/Orthocenter/Developments/TLD/datasets/06_car/");
-    //string filename(dir + "car.mpg");
-    //string dir("/Users/Orthocenter/Developments/TLD/datasets/07_motocross/");
-    //string filename(dir + "motocross.mpg");
-    //string dir("/Users/Orthocenter/Developments/TLD/datasets/08_volkswagen/");
-    //string filename(dir + "volkswagen.mpg");
-    //string dir("/Users/Orthocenter/Developments/MedianFlow/");
-    //string filename(dir + "me_480.mov");
-    //srand(time(0));
     string dir("/Users/Orthocenter/Developments/TLD/dataset2/04_pedestrian2/");
 
     string initFilename(dir + "init.txt");
@@ -289,7 +37,6 @@ void testTLD()
     FILE *fin = fopen(initFilename.c_str(), "r");
     FILE *fout = fopen(retFilename.c_str(), "w");
 
-    //VideoController videoController(filename);
     VideoController videoController(dir, true);
     ViewController viewController(&videoController);
     
@@ -300,7 +47,6 @@ void testTLD()
     fprintf(fout, "%d,%d,%d,%d\n", tlx, tly, brx, bry);
     
     Rect rect = Rect(Point2d(tlx, tly), Point2d(brx, bry));
-    //Rect rect = viewController.getRect();
     cerr << "Input Rect : " <<  rect << endl;
     
     viewController.refreshCache();
@@ -320,46 +66,16 @@ void testTLD()
         
         clock_t st = clock();
       
-        tld.track(bbTrack, bbDetect);
+        tld.track();
         
         clock_t ed = clock();
-        
         cerr << "Time : " << (double)(ed - st) / CLOCKS_PER_SEC * 1000 << "ms" << endl;
 
         viewController.refreshCache();
-        
-//        int count = 0;
-//        for(auto &sbb : tld.detector.scanBBs)
-//        {
-//            //viewController.refreshCache();
-//            //viewController.drawRect(tld.getBB(), COLOR_GREEN, 2);
-//            viewController.drawRect(sbb.first, COLOR_PURPLE);
-//            //viewController.showCache();
-//            //waitKey(1);
-//            
-//            if(++count == 100) break;
-//        }
-        
-        //viewController.refreshCache();
-        viewController.drawRect(bbTrack, COLOR_BLUE);
         viewController.drawRect(tld.getBB(), COLOR_GREEN, 2);
-        
-//        for(auto &bb : tld.detector.RFRET)
-//        {
-//            viewController.drawRect(bb, COLOR_PURPLE);
-//        }
-        
-        for(auto &bb : bbDetect)
-        {
-            viewController.drawRect(bb, COLOR_YELLOW);
-        }
-        
         viewController.showCache();
-        if(videoController.frameNumber() > 600)
-            waitKey(1);
-        else
-            waitKey(1);
-        cerr << endl << endl;
+        
+        cerr << endl;
         
         Rect retBB = tld.getBB();
         if(retBB == Rect(Point2d(-1, -1), Point2d(-1, -1)))
@@ -376,15 +92,52 @@ void testTLD()
     fclose(fout);
 }
 
-int main()
+void testOnVideo()
 {
-    //freopen("data.txt", "r", stdin);
-    //testRandomFernsClassifier();
-    //testNNClassifier();
-    //testRFNNClassifier();
-    //testDetector();
-    //testVarClassifier();
-    testTLD();
-    //genDataForOpenTLD();
+    string filename("/Users/Orthocenter/Developments/TLD/3.m4v");
+    
+    VideoController videoController(filename);
+    ViewController viewController(&videoController);
+    
+    videoController.readNextFrame();
+    
+    Rect rect = viewController.getRect();
+    cerr << "Input Rect : " <<  rect << endl;
+    
+    viewController.refreshCache();
+    viewController.drawRect(rect, COLOR_BLUE);
+    viewController.showCache();
+    waitKey();
+    
+    TLD tld(videoController.getCurrFrame(), rect);
+    
+    while(videoController.readNextFrame())
+    {
+        cerr << "Frame #" << videoController.frameNumber() << endl;
+        tld.setNextFrame(videoController.getCurrFrame());
+        
+        Rect bbTrack;
+        TYPE_DETECTOR_RET bbDetect;
+        
+        clock_t st = clock();
+        
+        tld.track();
+        
+        clock_t ed = clock();
+        cerr << "Time : " << (double)(ed - st) / CLOCKS_PER_SEC * 1000 << "ms" << endl;
+        
+        viewController.refreshCache();
+        viewController.drawRect(tld.getBB(), COLOR_GREEN, 2);
+        viewController.showCache();
+        
+        cerr << endl;
+    }
+
+}
+
+int main(int argc, char *argv[])
+{
+    testOnTLDDataset();
+    //testOnVideo();
     return 0;
 }

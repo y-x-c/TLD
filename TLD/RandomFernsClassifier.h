@@ -86,6 +86,7 @@ private:
     float getPosteriors(const Mat &img);
     float getSumPosteriors(const Mat &img);
     
+    void gen4Pts(float ox, float oy, vector<TYPE_FERN_LEAF> &tleave);
 public:
     RandomFernsClassifier();
     void init(int nStructs, int nFerns, const vector<float> &scales, int initW, int initH);

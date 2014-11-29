@@ -13,9 +13,38 @@ RandomFernsClassifier::RandomFernsClassifier()
     
 }
 
+void RandomFernsClassifier::gen4Pts(float ox, float oy, vector<TYPE_FERN_LEAF> &tleave)
+{
+    Point2f origin(ox, oy);
+    Point2f t, b, l, r;
+    float tmpx, tmpy;
+    
+    tmpy = oy - (getRNG() + RF_FEA_OFF);
+    tmpy = max(0.f, tmpy);
+    t = Point2f(ox, tmpy);
+    
+    tmpy = oy + (getRNG() + RF_FEA_OFF);
+    tmpy = min(1.f, tmpy);
+    b = Point2f(ox, tmpy);
+    
+    tmpx = ox - (getRNG() + RF_FEA_OFF);
+    tmpx = max(0.f, tmpx);
+    l = Point2f(tmpx, oy);
+    
+    tmpx = ox + (getRNG() + RF_FEA_OFF);
+    tmpx = min(1.f, tmpx);
+    r = Point2f(tmpx, oy);
+    
+    tleave.push_back(make_pair(origin, t));
+    tleave.push_back(make_pair(origin, b));
+    tleave.push_back(make_pair(origin, l));
+    tleave.push_back(make_pair(origin, r));
+
+}
+
 void RandomFernsClassifier::init(int _nFerns, int _nLeaves, const vector<float> &scales, int initW, int initH)
 {
-    thPos = FERN_TH_POS;
+    thPos = RF_TH_POS;
     
     nFerns = _nFerns;
     nLeaves = _nLeaves;
@@ -26,80 +55,42 @@ void RandomFernsClassifier::init(int _nFerns, int _nLeaves, const vector<float> 
     }
     
     vector<TYPE_FERN_LEAF> tleave;
-    float SHI = 1. / 5;
-    float OFF = SHI;
     
-    for(float sx = 0; sx < 1; sx += SHI)
+    for(float sx = 0; sx < 1; sx += RF_FEA_SHIFT)
     {
         if(!(sx > 0 && sx < 1)) continue;
         
-        for(float sy = 0; sy < 1; sy += SHI)
+        for(float sy = 0; sy < 1; sy += RF_FEA_SHIFT)
         {
             if(!(sy > 0 && sy < 1)) continue;
             
-            Point2f origin(sx, sy);
-            Point2f t, b, l, r;
-            float tmpx, tmpy;
-            
-            tmpy = sy - (getRNG() + OFF);
-            tmpy = max(0.f, tmpy);
-            t = Point2f(sx, tmpy);
-            
-            tmpy = sy + (getRNG() + OFF);
-            tmpy = min(1.f, tmpy);
-            b = Point2f(sx, tmpy);
-            
-            tmpx = sx - (getRNG() + OFF);
-            tmpx = max(0.f, tmpx);
-            l = Point2f(tmpx, sy);
-            
-            tmpx = sx + (getRNG() + OFF);
-            tmpx = min(1.f, tmpx);
-            r = Point2f(tmpx, sy);
-            
-            tleave.push_back(make_pair(origin, t));
-            tleave.push_back(make_pair(origin, b));
-            tleave.push_back(make_pair(origin, l));
-            tleave.push_back(make_pair(origin, r));
+            gen4Pts(sx, sy, tleave);
         }
     }
     
-    for(float sx = SHI / 2; sx < 1; sx += SHI)
+    for(float sx = RF_FEA_SHIFT / 2; sx < 1; sx += RF_FEA_SHIFT)
     {
         if(!(sx > 0 && sx < 1)) continue;
         
-        for(float sy = SHI / 2; sy < 1; sy += SHI)
+        for(float sy = RF_FEA_SHIFT / 2; sy < 1; sy += RF_FEA_SHIFT)
         {
             if(!(sy > 0 && sy < 1)) continue;
             
-            Point2f origin(sx, sy);
-            Point2f t, b, l, r;
-            float tmpx, tmpy;
-            
-            tmpy = sy - (getRNG() + OFF);
-            tmpy = max(0.f, tmpy);
-            t = Point2f(sx, tmpy);
-            
-            tmpy = sy + (getRNG() + OFF);
-            tmpy = min(1.f, tmpy);
-            b = Point2f(sx, tmpy);
-            
-            tmpx = sx - (getRNG() + OFF);
-            tmpx = max(0.f, tmpx);
-            l = Point2f(tmpx, sy);
-            
-            tmpx = sx + (getRNG() + OFF);
-            tmpx = min(1.f, tmpx);
-            r = Point2f(tmpx, sy);
-            
-            tleave.push_back(make_pair(origin, t));
-            tleave.push_back(make_pair(origin, b));
-            tleave.push_back(make_pair(origin, l));
-            tleave.push_back(make_pair(origin, r));
+            gen4Pts(sx, sy, tleave);
         }
     }
     
-    random_shuffle(tleave.begin(), tleave.end());
+    if(RND_SHUFFLE_STD)
+    {
+        random_shuffle(tleave.begin(), tleave.end());
+    }
+    else
+    {
+        for(int i = 0; i < tleave.size(); i++)
+        {
+            swap(tleave[i], tleave[(float)theRNG() * tleave.size()]);
+        }
+    }
     
     int cnt = 0;
     for(int i = 0; i < nFerns; i++)
@@ -166,8 +157,7 @@ void RandomFernsClassifier::update(const Mat &img, bool c, float p)
     
     if(c == CLASS_NEG)
     {
-        //if(p >= FERN_TH_POS)
-        if(p >= 0.5)
+        if(p >= RF_TH_NEG)
         {
             for(int iFern = 0; iFern < nFerns; iFern++)
             {
@@ -270,7 +260,10 @@ void RandomFernsClassifier::train(const TYPE_TRAIN_DATA_SET &trainDataSet)
             if(thPos < p)
             {
                 thPos = p;
-                cerr << "Increase RF thPos to " << thPos << endl;
+                
+                stringstream info;
+                info << "Increase threshold of positive class to " << thPos;
+                outputInfo("RF", info.str());
             }
         }
     }

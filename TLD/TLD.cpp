@@ -8,15 +8,16 @@
 
 #include "TLD.h"
 
-TLD::TLD(const Mat &img, const Rect &_bb):
-bb(_bb), valid(false)
+TLD::TLD(const Mat &img, const TYPE_BBOX &_bb)
 {
+    bbox = _bb;
+    
     setNextFrame(img);
     
     detector.init(nextImg, nextImgB, nextImg32F, _bb);
     learner.init(&detector);
     
-    valid = true;
+    trainValid = true;
 }
 
 TLD::~TLD()
@@ -35,31 +36,109 @@ void TLD::setNextFrame(const cv::Mat &frame)
     nextImg.convertTo(nextImg32F, CV_32F);
 }
 
-Rect TLD::getInside(const Rect &bb)
+TYPE_BBOX TLD::getInside(const TYPE_BBOX &bb)
 {
     int tlx = max(0, bb.tl().x), tly = max(0, bb.tl().y);
     int brx = min(nextImg.cols, bb.br().x), bry = min(nextImg.rows, bb.br().y);
     Rect retBB(tlx, tly, brx - tlx, bry - tly);
     
+    if(retBB.area() <= 0) retBB = BB_ERROR;
     return retBB;
 }
 
-void TLD::track(Rect &bbTrack, TYPE_DETECTOR_RET &bbDetect)
+int TLD::cluster()
 {
-    ///// debug
-    bbTrack = BB_ERROR;
-    bbDetect.clear();
-    /////
+    clusterBB.clear();
     
+    vector<vector<int> > edges(detectorRet.size());
+    
+    for(int i = 0; i < detectorRet.size(); i++)
+    {
+        for(int j = i + 1; j < detectorRet.size(); j++)
+        {
+            if(overlap(detectorRet[i], detectorRet[j]) > 0.5)
+            {
+                edges[i].push_back(j);
+                edges[j].push_back(i);
+            }
+        }
+    }
+    
+    vector<int> belong(detectorRet.size(), -1);
+    queue<int> Q;
+    
+    int cntBelong = 0;
+    for(int i = 0; i < detectorRet.size(); i++)
+    {
+        if(belong[i] != -1) continue;
+        
+        belong[i] = cntBelong;
+        Q.push(i);
+        
+        while(!Q.empty())
+        {
+            int x = Q.front();
+            Q.pop();
+            for(auto &y : edges[x])
+            {
+                if(belong[y] == -1)
+                {
+                    belong[y] = cntBelong;
+                    Q.push(y);
+                }
+            }
+        }
+        
+        cntBelong++;
+    }
+    
+    for(int i = 0; i < cntBelong; i++)
+    {
+        float x = 0., y = 0., height = 0., width = 0.;
+        float Sc = 0.;
+        int count = 0;
+        
+        for(int j = 0; j < detectorRet.size(); j++)
+        {
+            if(belong[j] != i) continue;
+            
+            x += detectorRet[j].x;
+            y += detectorRet[j].y;
+            height += detectorRet[j].height;
+            width += detectorRet[j].width;
+            
+            Sc += detectorRet[j].Sc;
+            
+            count++;
+        }
+        
+        x /= count;
+        y /= count;
+        height /= count;
+        width /= count;
+        Sc /= count;
+        
+        TYPE_DETECTOR_SCANBB _rect(Rect(round(x), round(y), round(width), round(height)));
+        _rect.Sc = Sc;
+        clusterBB.push_back(_rect);
+    }
+    
+    stringstream info;
+    info << "Found " << cntBelong << " clusters.";
+    outputInfo("TLD", info.str());
+    
+    return cntBelong;
+}
+
+int TLD::track()
+{
+    //track
     tracker = new MedianFlow(prevImg, nextImg);
     
-    //track
     int trackerStatus;
-    TYPE_MF_BB _trackerRet = tracker->trackBox(bb, trackerStatus);
-    TYPE_DETECTOR_SCANBB trackerRet(Rect(cvRound(_trackerRet.x), cvRound(_trackerRet.y), cvRound(_trackerRet.width), cvRound(_trackerRet.height)));
+    TYPE_MF_BB _trackerRet = tracker->trackBox(bbox, trackerStatus);
+    TYPE_DETECTOR_SCANBB trackerRet(Rect(round(_trackerRet.x), round(_trackerRet.y), round(_trackerRet.width), round(_trackerRet.height)));
     TYPE_DETECTOR_SCANBB trackerRetInside = getInside(trackerRet);
-
-    if(trackerRetInside.area() <= 0) trackerStatus = MF_TRACK_F_BOX;
     
     if(trackerStatus == MF_TRACK_SUCCESS)
     {
@@ -67,7 +146,6 @@ void TLD::track(Rect &bbTrack, TYPE_DETECTOR_RET &bbDetect)
     }
     
     //detect
-    TYPE_DETECTOR_RET detectorRet;
     detector.dectect(nextImg, nextImgB, nextImg32F, detectorRet);
     
     //integrate
@@ -76,119 +154,37 @@ void TLD::track(Rect &bbTrack, TYPE_DETECTOR_RET &bbDetect)
     
     if(trackerStatus != MF_TRACK_SUCCESS && detectorRet.size() == 0)
     {
-        cerr << "Not visible." << endl;
-        bb = BB_ERROR;
+        outputInfo("TLD", "Not visible.");
+        bbox = BB_ERROR;
         
         delete tracker;
-        return;
+        return TLD_TRACK_FAILED;
     }
     
     if(trackerStatus != MF_TRACK_SUCCESS)
     {
-        valid = false;
+        trainValid = false;
     }
     else
     {
-        valid |= trackerRetInside.Sr > max(0.7f, detector.getNNThPos());
+        int value = trackerRetInside.Sr > max(0.7f, detector.getNNThPos());
+        
+        if(!trainValid && value) outputInfo("TLD", "Trust current trajectory.");
+        
+        trainValid |= value;
     }
     
     if(trackerStatus == MF_TRACK_SUCCESS)
     {
-        cerr << "Track bb : " << trackerRet << " Sc : " << trackerRetInside.Sc << " Sr : " << trackerRetInside.Sr << "  Sn : " << trackerRetInside.Sn << " Sp: " << trackerRetInside.Sp << endl;
-
         trackSc = trackerRetInside.Sc;
         finalBB = trackerRet;
         finalBBInside = trackerRetInside;
-        
-        // debug
-        bbTrack = trackerRet;
-        // end debug
     }
     
     if(detectorRet.size())
     {
-        //debug
-        bbDetect = detectorRet;
-        //end debug
-        
         //cluster
-        vector<vector<int> > edges(detectorRet.size());
-        
-        for(int i = 0; i < detectorRet.size(); i++)
-        {
-            for(int j = i + 1; j < detectorRet.size(); j++)
-            {
-                if(overlap(detectorRet[i], detectorRet[j]) > 0.5)
-                {
-                    edges[i].push_back(j);
-                    edges[j].push_back(i);
-                }
-            }
-        }
-        
-        vector<int> belong(detectorRet.size(), -1);
-        queue<int> Q;
-        
-        int cntBelong = 0;
-        for(int i = 0; i < detectorRet.size(); i++)
-        {
-            if(belong[i] != -1) continue;
-            
-            belong[i] = cntBelong;
-            Q.push(i);
-            
-            while(!Q.empty())
-            {
-                int x = Q.front();
-                Q.pop();
-                for(auto &y : edges[x])
-                {
-                    if(belong[y] == -1)
-                    {
-                        belong[y] = cntBelong;
-                        Q.push(y);
-                    }
-                }
-            }
-            
-            cntBelong++;
-        }
-        
-        TYPE_DETECTOR_RET clusterBB;
-        for(int i = 0; i < cntBelong; i++)
-        {
-            float x = 0., y = 0., height = 0., width = 0.;
-            float Sc = 0.;
-            int count = 0;
-            
-            for(int j = 0; j < detectorRet.size(); j++)
-            {
-                if(belong[j] != i) continue;
-                
-                x += detectorRet[j].x;
-                y += detectorRet[j].y;
-                height += detectorRet[j].height;
-                width += detectorRet[j].width;
-                
-                Sc += detectorRet[j].Sc;
-                
-                count++;
-            }
-            
-            x /= count;
-            y /= count;
-            height /= count;
-            width /= count;
-            Sc /= count;
-            
-            TYPE_DETECTOR_SCANBB _rect(Rect(cvRound(x), cvRound(y), cvRound(width), cvRound(height)));
-            _rect.Sc = Sc;
-            clusterBB.push_back(_rect);
-            
-            cerr << "Cluster " << i << " : " << _rect  << " Sc : " << Sc << endl;
-        }
-        
-        cout << "Found " << cntBelong << " clusters." << endl;
+        int cntBelong = cluster();
         
         if(trackerStatus == MF_TRACK_SUCCESS)
         {
@@ -206,14 +202,17 @@ void TLD::track(Rect &bbTrack, TYPE_DETECTOR_RET &bbDetect)
             
             if(confidentDetections == 1)
             {
-                cerr << "Found a better match.. Regard it as the final result.." << endl;
+                outputInfo("TLD", "Found a better match.. Reinitialize bounding box.");
+                
                 finalBB = finalBBInside = clusterBB[lastId];
                 
-                valid = false;
+                trainValid = false;
             }
             else
             {
-                cerr << "Found " << confidentDetections << " confidence clusters. Mix track bb and detection bbs which are close to track bb..." << endl;
+                stringstream info;
+                info << "Found " << confidentDetections << " confidence clusters. Adjust bouding box by detection result.";
+                outputInfo("TLD", info.str());
 
                 int closeDetections = 0;
                 float cx = 0., cy = 0., cw = 0., ch = 0.;
@@ -237,72 +236,86 @@ void TLD::track(Rect &bbTrack, TYPE_DETECTOR_RET &bbDetect)
                 cw = (tWeight * trackerRet.width + cw) / (tWeight + closeDetections);
                 ch = (tWeight * trackerRet.height + ch) / (tWeight + closeDetections);
                 
-                finalBB = Rect(cvRound(cx), cvRound(cy), cvRound(cw), cvRound(ch));
+                finalBB = Rect(round(cx), round(cy), round(cw), round(ch));
                 finalBBInside = getInside(finalBB);
+                
+                if(finalBBInside.area() <= 0)
+                {
+                    outputInfo("TLD", "Not visable.");
+                    
+                    trainValid = false;
+                    return TLD_TRACK_FAILED;
+                }
             }
         }
         else
         {
             if(cntBelong == 1)
             {
-                cerr << "Track failed but found only one cluster, regard it as the final result." << endl;
+                outputInfo("TLD", "Tracking failed but found only one cluster. Reinitialize.");
                 finalBB = finalBBInside = clusterBB[0];
                 
-                valid = false;
+                trainValid = false;
             }
             else
             {
-                cerr << "Track failed and found too many clusters, discard detection result." << endl;
-                cerr << "Not visible." << endl;
-                bb = BB_ERROR;
+                outputInfo("TLD", "Tracking failed and found too many clusters, discard detection results.");
+                outputInfo("TLD", "Not visable.");
+                bbox = BB_ERROR;
                 
-                valid = false;
+                trainValid = false;
                 
                 delete tracker;
-                return;
+                return TLD_TRACK_FAILED;
             }
         }
     }
     
     detector.updataNNPara(nextImg32F, finalBBInside);
     
-    cerr << "Final bb : " << finalBB << " Sc : " << finalBBInside.Sc << " Sr : " << finalBBInside.Sr << "  Sn : " << finalBBInside.Sn << " Sp: " << finalBBInside.Sp << endl;
-    
-    if(valid)
+    if(trainValid)
     {
         if(finalBB == finalBBInside)
         {
-            if(finalBBInside.Sn < 0.95 && finalBBInside.Sr > 0.5)
+            if(finalBBInside.Sr > 0.5)
             {
-                learner.learn(nextImg, nextImgB, nextImg32F, finalBB);
+                if(finalBBInside.Sn < 0.95)
+                {
+                    learner.learn(nextImg, nextImgB, nextImg32F, finalBB);
+                }
+                else
+                {
+                    outputInfo("TLD", "Probably already in negative example set, not learning");
+                }
             }
             else
             {
-                //valid = 0;
-                cerr << "changing too fast, not learning" << endl;
+                //trainValid = 0;
+                outputInfo("TLD", "Changing too fast, not learning");
             }
         }
         else
         {
-            cerr << "finalbb is out of image, not learning" << endl;
+            outputInfo("TLD", "Final result is out of image, not learning");
         }
     }
     else
     {
-        cerr << "Final result is not in a convinced trajectory, not training" << endl;
+        outputInfo("TLD", "Final result is not in a convinced trajectory, not training");
     }
     
-    bb = finalBB;
+    bbox = finalBB;
 
     delete tracker;
+    return TLD_TRACK_SUCCESS;
 }
 
-Rect TLD::getBB()
+TYPE_BBOX TLD::getBB()
 {
-    return bb;
+    return bbox;
 }
 
-float TLD::overlap(const TYPE_DETECTOR_BB &bb1, const TYPE_DETECTOR_BB &bb2)
+float TLD::overlap(const TYPE_BBOX &bb1, const TYPE_BBOX &bb2)
 {
     int tlx, tly, brx, bry;
     

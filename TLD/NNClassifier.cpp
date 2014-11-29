@@ -93,7 +93,7 @@ void NNClassifier::getS(const cv::Mat &img, float &Sp, float &Sn, float &Sr, flo
     for(auto &pPatch : pPatches)
     {
         float S = (calcNCC(pPatch, patch) + 1) * 0.5;
-        //maxSp = max(maxSp, S);
+
         if(S > maxSp)
         {
             maxSp = S;
@@ -141,6 +141,8 @@ bool NNClassifier::update(const Mat &patch, int c)
             pPatches.erase(pPatches.begin() + idx);
         }
         pPatches.push_back(patch);
+        
+        // following method is used in OpenTLD implemented by Zdenek Kalal
         //pPatches.insert(pPatches.begin() + maxSPIdx + 1, patch);
         
         return true;
@@ -214,7 +216,10 @@ void NNClassifier::train(const TYPE_TRAIN_DATA_SET &trainDataSet)
             if(Sr > thPos)
             {
                 thPos = Sr;
-                cerr << "Increase NN thPos to " << thPos << endl;
+
+                stringstream info;
+                info << "Increase threshold of positive class to " << thPos;
+                outputInfo("NN", info.str());
             }
         }
     }
@@ -229,8 +234,7 @@ Mat NNClassifier::getPatch(const Mat &img32F)
     Scalar mean, stddev;
     
     meanStdDev(patch, mean, stddev);
-    //patch.convertTo(patch, CV_32F);
-    patch -= mean.val[0];   // think more
+    patch -= mean.val[0];   // to reduce brightness influence
 
     return patch;
 }
@@ -244,7 +248,12 @@ bool NNClassifier::getClass(const Mat &img32F, TYPE_DETECTOR_SCANBB &sbb)
 
 void NNClassifier::showModel()
 {
-    cerr << "NN Positive samples : " << pPatches.size() << " Negative samples : " << nPatches.size() << endl;
+    if(!SHOW_NEW_NN_SAMPLES) return;
+    
+    stringstream info;
+    info << "Positive samples : " << pPatches.size() << " Negative samples : " << nPatches.size();
+    
+    outputInfo("NN", info.str());
     
     if(newSamplesP.cols) imshow("new positive samples", newSamplesP);
     if(newSamplesN.cols) imshow("new negative samples", newSamplesN);

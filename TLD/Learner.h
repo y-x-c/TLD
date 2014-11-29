@@ -24,6 +24,7 @@ class Learner
 {
 private:
     Detector *detector;
+    PatchGenerator patchGenerator;
     
 public:
     Learner(){}
@@ -31,7 +32,7 @@ public:
     
     ~Learner();
     
-    void learn(const Mat &img, const Mat &imgB, const Mat &img32F, const Rect &ret);
+    void learn(const Mat &img, const Mat &imgB, const Mat &img32F, const TYPE_BBOX &ret);
 };
 
 #endif /* defined(__TLD__Learner__) */

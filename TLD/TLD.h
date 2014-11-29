@@ -26,31 +26,33 @@ using namespace cv;
 class TLD
 {
 private:
-    //debug
-public:
-    // end debug
     MedianFlow *tracker;
     Detector detector;
     Learner learner;
     
     Mat prevImg, nextImg, nextImgB, nextImg32F;
-    Rect bb;
+    TYPE_BBOX bbox;
     
-    bool valid;
+    TYPE_DETECTOR_RET detectorRet;
+    TYPE_DETECTOR_RET clusterBB;
     
-    float overlap(const TYPE_DETECTOR_BB &bb1, const TYPE_DETECTOR_BB &bb2);
-    Rect getInside(const Rect &bb);
+    bool trainValid;
+    
+    float overlap(const TYPE_BBOX &bb1, const TYPE_BBOX &bb2);
+    TYPE_BBOX getInside(const TYPE_BBOX &bb);
+    
+    int cluster();
     
 public:
     
-    TLD(const Mat &img, const Rect &bb);
+    TLD(const Mat &img, const TYPE_BBOX &bb);
     
     ~TLD();
     
     void setNextFrame(const Mat &frame);
-    void track(Rect &bbTrack, TYPE_DETECTOR_RET &bbDetect);
+    int track();
     
-    Rect getBB();
+    TYPE_BBOX getBB();
     
 };
 

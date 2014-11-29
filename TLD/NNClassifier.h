@@ -20,10 +20,7 @@ using namespace cv;
 class NNClassifier
 {
 private:
-//debug
-public:
-//end debug
-    //save positive patches and negative patches in [1 x (patchSize ^ 2)]
+    //save positive patches and negative patches in [1 x (patchSize ^ 2)] with type CV_32F
     vector<Mat> pPatches, nPatches;
 
     float calcNCC(const Mat &patch1, const Mat &patch2);

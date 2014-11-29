@@ -6,7 +6,6 @@
 //  Copyright (c) 2014 陈裕昕. All rights reserved.
 //
 
-#include <cmath>
 #include "MedianFlow.h"
 
 MedianFlow::MedianFlow()
@@ -16,25 +15,9 @@ MedianFlow::MedianFlow()
 
 MedianFlow::MedianFlow(const Mat &prevImg, const Mat &nextImg, ViewController *_viewController)
 {
-    assert(prevImg.type() == CV_8U || prevImg.type() == CV_8UC3);
-    assert(nextImg.type() == CV_8U || nextImg.type() == CV_8UC3);
-    
-    if(prevImg.channels() == 3)
-        // for invoking MedianFlow directly
-        cvtColor(prevImg, this->prevImg, CV_BGR2GRAY);
-    else
-        this->prevImg = prevImg; // prevImg will be saved in class TLD
-        //prevImg.copyTo(this->prevImg);
-    
-    if(prevImg.channels() == 3)
-        cvtColor(nextImg, this->nextImg, CV_BGR2GRAY);
-    else
-        this->nextImg = nextImg;
-        //nextImg.copyTo(this->nextImg);
-    
-    //
-    //this->prevImg.convertTo(this->prevImg, CV_32F);
-    //this->nextImg.convertTo(this->nextImg, CV_32F);
+    this->prevImg = prevImg;
+
+    this->nextImg = nextImg;
     
     opticalFlow = new OpticalFlow(this->prevImg, this->nextImg);
     opticalFlowSwap = new OpticalFlow(this->nextImg, this->prevImg);
@@ -87,9 +70,6 @@ bool MedianFlow::isPointInside(const TYPE_MF_PT &pt, const TYPE_MF_COORD alpha)
 
 bool MedianFlow::isBoxUsable(const TYPE_MF_BB &rect)
 {
-    // just test
-    return min(rect.width, rect.height) >= MF_HALF_PATCH_SIZE * 2 + 1;
-    
     int width = prevImg.cols, height = prevImg.rows;
  
     // bounding box is too large
@@ -102,8 +82,9 @@ bool MedianFlow::isBoxUsable(const TYPE_MF_BB &rect)
     TYPE_MF_COORD bry = min((TYPE_MF_COORD)rect.br().y, (TYPE_MF_COORD)height);
     
     TYPE_MF_BB bb(tlx, tly, brx - tlx, bry - tly);
-    if(bb.width < MF_NPTS + 2 * MF_HALF_PATCH_SIZE || bb.height < MF_NPTS + 2 * MF_HALF_PATCH_SIZE) return false;
-    
+    if(bb.width <= 2 * MF_HALF_PATCH_SIZE || bb.height <= 2 * MF_HALF_PATCH_SIZE) return false;
+ 
+    // otherwise
     return true;
 }
 
@@ -222,7 +203,7 @@ TYPE_MF_BB MedianFlow::calcRect(const TYPE_MF_BB &rect, const vector<TYPE_MF_PT>
     if(dxs.size() <= 1)
     {
         status = MF_TRACK_F_PTS;
-        cerr << "MF_TRACK_F_PTS" << endl;
+        outputInfo("Tracker", "Error : Too little points after filter.");
         return BB_ERROR;
     }
     
@@ -262,10 +243,6 @@ TYPE_MF_BB MedianFlow::calcRect(const TYPE_MF_BB &rect, const vector<TYPE_MF_PT>
     TYPE_MF_PT br(center.x + ret.width / 2 * ratio, center.y + ret.height / 2 * ratio);
     
     ret = TYPE_MF_BB(tl, br);
-
-    // debug
-    //cout << ret << endl;
-    //
     
     for(int i = 0; i < size; i++)
     {
@@ -280,32 +257,29 @@ TYPE_MF_BB MedianFlow::calcRect(const TYPE_MF_BB &rect, const vector<TYPE_MF_PT>
     
     float medianAbsDist = absDist[(int)absDist.size() / 2];
     
-    for(auto &i : absDist)
-        //caution : must add '&'
+    for(auto &i : absDist) //caution : must add '&'
     {
         i = abs(i - medianAbsDist);
     }
     
     sort(absDist.begin(), absDist.end());
-    cerr << "FB :" << absDist[(int)absDist.size() / 2] << endl;
-    //if(absDist[(int)absDist.size() / 2] > MF_ERROR_DIST)
-    //if(absDist[(int)absDist.size() / 2] > 30)
-    if(medianAbsDist > 10)
+
+    if(medianAbsDist > MF_FB_ERROR_DIST)
     {
         status = MF_TRACK_F_CONFUSION;
-        cerr << "MF_TRACK_F_CONFUSION" << endl;
+        outputInfo("Tracker", "Error : Large foward-backward distance.");
         return BB_ERROR;
     }
     
     if(!isBoxUsable(ret))
     {
         status = MF_TRACK_F_BOX;
-        cerr << "MF_TRACK_F_BOX" << endl;
+        outputInfo("Tracker", "Error : Result bounding box is unusable.");
         return BB_ERROR;
     }
     
     status = MF_TRACK_SUCCESS;
-    cerr << "MF_TRACK_SUCCESS" << endl;
+    outputInfo("Tracker", "Tracked successfully.");
     return ret;
 }
 
@@ -314,6 +288,7 @@ TYPE_MF_BB MedianFlow::trackBox(const TYPE_MF_BB &inputBox, int &status)
     if(!isBoxUsable(inputBox))
     {
         status = MF_TRACK_F_BOX;
+        outputInfo("Tracker", "Error : Input bounding box is unusable.");
         return BB_ERROR;
     }
     
@@ -327,39 +302,6 @@ TYPE_MF_BB MedianFlow::trackBox(const TYPE_MF_BB &inputBox, int &status)
     
     opticalFlow->trackPts(pts, retF, statusF);
     opticalFlowSwap->trackPts(retF, retFB, statusFB);
-    
-    // just test
-    
-//    CvPoint2D32f* points[3] = {0, 0, 0};
-//    points[0] = (CvPoint2D32f*)cvAlloc(pts.size() * sizeof(CvPoint2D32f));
-//    points[1] = (CvPoint2D32f*)cvAlloc(pts.size() * sizeof(CvPoint2D32f));
-//    points[2] = (CvPoint2D32f*)cvAlloc(pts.size() * sizeof(CvPoint2D32f));
-//    
-//    for(int i = 0; i < pts.size(); i++)
-//    {
-//        points[0][i].x = pts[i].x; points[0][i].y = pts[i].y;
-//        points[1][i].x = pts[i].x; points[1][i].y = pts[i].y;
-//        points[2][i].x = pts[i].x; points[2][i].y = pts[i].y;
-//    }
-//    
-//    char *_statusF = (char*)cvAlloc(pts.size());
-//    char *_statusFB = (char*)cvAlloc(pts.size());
-//    
-//    Mat pyri, pyrj;
-//    pyri = cvCreateImage(prevImg.size(), 8, 1);
-//    pyrj = cvCreateImage(nextImg.size(), 8, 1);
-//    
-//    cvCalcOpticalFlowPyrLK(&prevImg, &nextImg, &pyri, &pyrj, points[0], points[1], (int)pts.size(), Size(4, 4), 5, _statusF, 0, cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03), CV_LKFLOW_INITIAL_GUESSES);
-//    
-//    cvCalcOpticalFlowPyrLK(&nextImg, &prevImg, &pyrj, &pyri, points[1], points[2], (int)pts.size(), Size(4, 4), 5, _statusFB, 0, cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03), CV_LKFLOW_INITIAL_GUESSES | CV_LKFLOW_PYR_A_READY | CV_LKFLOW_PYR_B_READY);
-//    
-//    for(int i = 0; i < pts.size(); i++)
-//    {
-//        retF.push_back(TYPE_MF_PT(points[1][i]));
-//        retFB.push_back(TYPE_MF_PT(points[2][i]));
-//    }
-    
-    //
 
     vector<int> rejected(MF_NPTS * MF_NPTS);
     
@@ -372,28 +314,6 @@ TYPE_MF_BB MedianFlow::trackBox(const TYPE_MF_BB &inputBox, int &status)
     TYPE_MF_BB ret;
     
     ret = calcRect(inputBox, pts, retF, retFB, rejected, status);
-    
-    ///// show result
-    if(viewController)
-    {
-        vector<TYPE_MF_PT> rPts, rPts2, rPts3;
-        
-        for(int i = 0; i < pts.size(); i++)
-        {
-            if(rejected[i]) continue;
-            rPts.push_back(pts[i]);
-            rPts2.push_back(retF[i]);
-            rPts3.push_back(retFB[i]);
-        }
-        viewController->drawCircles(rPts, COLOR_BLUE);
-        viewController->drawCircles(rPts2);
-        //viewController->drawCircles(rPts3, Scalar(23, 45, 214));
-        viewController->drawLines(rPts, rPts2);
-        
-        cout << "number of points after filtering:" << rPts.size() << endl;
-        cout << ret << endl;
-    }
-    /////
     
     if(status != MF_TRACK_SUCCESS)
     {

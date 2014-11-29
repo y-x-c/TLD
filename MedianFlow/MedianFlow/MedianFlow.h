@@ -12,8 +12,10 @@
 
 #include "TLDSystemStruct.h"
 
-#include "OpticalFlow.h"
+#include <cmath>
 #include <iostream>
+
+#include "OpticalFlow.h"
 
 // show result
 #include "ViewController.h"
@@ -47,7 +49,7 @@ public:
     
     MedianFlow();
  
-    // prevImg & nextImg should be CV_8U | CV_8UC3
+    // prevImg & nextImg should be CV_8U
     // viewController for showing MedianFlow results
     MedianFlow(const Mat &prevImg, const Mat &nextImg, ViewController *viewController = NULL);
     
