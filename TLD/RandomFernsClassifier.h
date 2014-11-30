@@ -79,13 +79,13 @@ private:
     vector<vector<vector<pair<int, int> > > > offsets;
     map<pair<int, int>, int> scalesId;
     
-    void update(const Mat &img, bool c, float p = -1.);
+    void update(const Mat &img, bool c);
     
     float getRNG();
-    int getCode(const Mat &img, int idx);
+    int getCode(const Mat &img, int idx, int scaleId);
     
-    float getPosteriors(const Mat &img);
-    float getSumPosteriors(const Mat &img);
+    float getPosteriors(const Mat &img, int scaleId);
+    float getSumPosteriors(const Mat &img, int scaleId);
     
     void gen4Pts(float ox, float oy, vector<TYPE_FERN_LEAF> &tleave);
     void genOffsets(const vector<float> &scales, const Mat &img);
