@@ -20,6 +20,11 @@ VideoController::VideoController(const string &path):
     
     _frameSize = Size(videoCapture->get(CV_CAP_PROP_FRAME_WIDTH), videoCapture->get(CV_CAP_PROP_FRAME_HEIGHT));
     // check if the video file is opened
+    
+    int width = videoCapture->get(CV_CAP_PROP_FRAME_WIDTH);
+    int height = videoCapture->get(CV_CAP_PROP_FRAME_HEIGHT);
+    _frameSize = Size(width * (120.f /width), height * (120.f / width));
+
 }
 
 VideoController::VideoController(const string &_path, const string &_append):

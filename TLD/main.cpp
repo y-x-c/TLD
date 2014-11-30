@@ -29,10 +29,10 @@ Rect readRect()
 
 void testOnTLDDataset()
 {
-    string dir("/Users/Orthocenter/Developments/TLD/dataset2/03_pedestrian1/");
+    string dir("/Users/Orthocenter/Developments/TLD/dataset2/06_car/");
 
     string initFilename(dir + "init.txt");
-    string retFilename(dir + "myRet6.txt");
+    string retFilename(dir + "myRet7.txt");
     
     FILE *fin = fopen(initFilename.c_str(), "r");
     FILE *fout = fopen(retFilename.c_str(), "w");
@@ -176,7 +176,7 @@ void stabilize()
 {
     string dir("/home/cyx/Developments/OpenTLD/_input/06_car/");
     //VideoController videoController(dir, ".jpg");
-    VideoController videoController("/home/cyx/Desktop/3.m4v");
+    VideoController videoController("/Users/Orthocenter/Developments/TLD/4.mov");
     ViewController viewController(&videoController);
 
     videoController.readNextFrame();

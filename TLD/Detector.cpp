@@ -19,7 +19,8 @@ void Detector::init(const Mat &img, const Mat &imgB, const Mat &img32F, const Re
     imgH = img.rows;
     
     genScanBB();
-    
+    sortByOverlap(patternBB, true);
+
     rFClassifier.init(DETECTOR_NFERNS, DETECTOR_NLEAVES, scales, imgB, patternBB.width, patternBB.height);
     
     Scalar mean, dev;
@@ -43,10 +44,21 @@ Detector::~Detector()
 
 void Detector::initTrain(const Mat &img, const Mat &imgB, const Mat &img32F, const TYPE_BBOX &patternBB)
 {
-    sortByOverlap(patternBB, true);
-    
     genPosData(img, imgB, img32F, trainDataSetNN, trainDataSetRF);
     genNegData(img, imgB, img32F, trainDataSetNN, trainDataSetRF);
+
+    if(RND_SHUFFLE_STD)
+    {
+        random_shuffle(trainDataSetRF.begin(), trainDataSetRF.end());
+    }
+    else
+    {
+        for(int i = 1; i < trainDataSetRF.size(); i++)
+        {
+            int r = (float)theRNG() * i;
+            swap(trainDataSetRF[i], trainDataSetRF[r]);
+        }
+    }
     
     rFClassifier.train(trainDataSetRF);
     nNClassifier.train(trainDataSetNN);
@@ -245,19 +257,6 @@ void Detector::genNegData(const Mat &img, const Mat &imgB, const Mat &img32F, TY
         
         if(c == CLASS_NEG) countRF++;
         if(c == CLASS_TEST_NEG) countRFT++;
-    }
-    
-    if(RND_SHUFFLE_STD)
-    {
-        random_shuffle(trainDataSetRF.begin(), trainDataSetRF.end());
-    }
-    else
-    {
-        for(int i = 1; i < trainDataSetRF.size(); i++)
-        {
-            int r = (float)theRNG() * i;
-            swap(trainDataSetRF[i], trainDataSetRF[r]);
-        }
     }
     
     stringstream info;
