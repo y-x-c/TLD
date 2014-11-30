@@ -20,7 +20,7 @@ void Detector::init(const Mat &img, const Mat &imgB, const Mat &img32F, const Re
     
     genScanBB();
     
-    rFClassifier.init(DETECTOR_NFERNS, DETECTOR_NLEAVES, scales, patternBB.width, patternBB.height);
+    rFClassifier.init(DETECTOR_NFERNS, DETECTOR_NLEAVES, scales, imgB, patternBB.width, patternBB.height);
     
     Scalar mean, dev;
     meanStdDev(img(scanBBs[0]), mean, dev);
@@ -181,12 +181,17 @@ void Detector::genPosData(const Mat &img, const Mat &imgB, const Mat &img32F, TY
         if(j != 0)
         {
             patchGenerator(imgB, Point(cx, cy), warped, bbHull.size(), theRNG());
+
+            // for optimum in RF::getcode()
+            Mat tmp(imgB.size() ,CV_8U, Scalar::all(0));
+            warped.copyTo(tmp(Rect(0, 0, bbHull.size().width, bbHull.size().height)));
+            warped = tmp;
         }
         else
         {
             warped = imgB(bbHull);
         }
-        
+
         for(int i = 0; i < DETECTOR_N_GOOD_BB && scanBBs[i].overlap >= GOODBB_OL; i++)
         {
             Rect rect(scanBBs[i].tl() - tl, scanBBs[i].br() - tl);

@@ -42,7 +42,7 @@ void RandomFernsClassifier::gen4Pts(float ox, float oy, vector<TYPE_FERN_LEAF> &
 
 }
 
-void RandomFernsClassifier::init(int _nFerns, int _nLeaves, const vector<float> &scales, int initW, int initH)
+void RandomFernsClassifier::init(int _nFerns, int _nLeaves, const vector<float> &scales, const Mat &imgB, int initW, int initH)
 {
     thPos = RF_TH_POS;
     
@@ -127,11 +127,35 @@ void RandomFernsClassifier::init(int _nFerns, int _nLeaves, const vector<float> 
             }
         }
     }
+
+    genOffsets(scales, imgB);
 }
 
 RandomFernsClassifier::~RandomFernsClassifier()
 {
     
+}
+
+void RandomFernsClassifier::genOffsets(const vector<float> &scales, const Mat &img)
+{
+    for(int s = 0; s < scales.size(); s++)
+    {
+        offsets.push_back(vector<vector<pair<int, int> > >());
+        for(int i = 0; i < nFerns; i++)
+        {
+            offsets[s].push_back(vector<pair<int, int> >());
+            for(int j = 0; j < nLeaves; j++)
+            {
+                int p1x, p1y, p2x, p2y;
+                cmpPts[s][i][j].get(p1x, p1y, p2x, p2y);
+
+                int offset1 = p1y * img.step + p1x;
+                int offset2 = p2y * img.step + p2x;
+
+                offsets[s][i].push_back(make_pair(offset1, offset2));
+            }
+        }
+    }
 }
 
 float RandomFernsClassifier::getRNG()
@@ -172,7 +196,7 @@ int RandomFernsClassifier::getCode(const Mat &img, int idx)
 {
     int code = 0;
     int scaleId;
-    
+
     //assert(scalesId.count(make_pair(img.cols, img.rows)) > 0);
     
     scaleId = scalesId[make_pair(img.cols, img.rows)];
@@ -191,8 +215,11 @@ int RandomFernsClassifier::getCode(const Mat &img, int idx)
         cmpPts[scaleId][idx][i].get(p1x, p1y, p2x, p2y);
         
         // use char instead of int
-        char v1 = img.at<char>(p1y, p1x);
-        char v2 = img.at<char>(p2y, p2x);
+        //int v1 = img.at<uchar>(p1y, p1x);
+        //int v2 = img.at<uchar>(p2y, p2x);
+
+        int v1 = *(uchar*)(img.data + offsets[scaleId][idx][i].first);
+        int v2 = *(uchar*)(img.data + offsets[scaleId][idx][i].second);
         
         code = (code << 1) | (v1 < v2);
     }

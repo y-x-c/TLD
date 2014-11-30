@@ -76,6 +76,7 @@ private:
     TYPE_FERN_FERNS ferns;
     
     vector<vector<vector<CmpPt> > > cmpPts; // [scaleId][fernId][leafId]
+    vector<vector<vector<pair<int, int> > > > offsets;
     map<pair<int, int>, int> scalesId;
     
     void update(const Mat &img, bool c, float p = -1.);
@@ -87,9 +88,10 @@ private:
     float getSumPosteriors(const Mat &img);
     
     void gen4Pts(float ox, float oy, vector<TYPE_FERN_LEAF> &tleave);
+    void genOffsets(const vector<float> &scales, const Mat &img);
 public:
     RandomFernsClassifier();
-    void init(int nStructs, int nFerns, const vector<float> &scales, int initW, int initH);
+    void init(int nStructs, int nFerns, const vector<float> &scales, const Mat &imgB, int initW, int initH);
     
     ~RandomFernsClassifier();
     bool getClass(const Mat &img, TYPE_DETECTOR_SCANBB &sbb);
