@@ -23,7 +23,7 @@ VideoController::VideoController(const string &path):
     
     int width = videoCapture->get(CV_CAP_PROP_FRAME_WIDTH);
     int height = videoCapture->get(CV_CAP_PROP_FRAME_HEIGHT);
-    _frameSize = Size(width * (120.f /width), height * (120.f / width));
+    _frameSize = Size(width * (240.f /width), height * (240.f / width));
 
 }
 
@@ -80,7 +80,10 @@ bool VideoController::readNextFrame()
     {
         bool f = videoCapture -> read(frames[curr]);
         
-        resize(frames[curr], frames[curr], _frameSize);
+        if(f)
+        {
+            resize(frames[curr], frames[curr], _frameSize);
+        }
         
         return f;
     }

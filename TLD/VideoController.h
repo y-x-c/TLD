@@ -23,13 +23,13 @@ private:
     
     Size _frameSize;
     
-    VideoCapture *videoCapture;
+
     
     string path, append;
     int totalFrame;
     
 public:
-    
+    VideoCapture *videoCapture;    
     bool cameraMode, imageMode;
     
     VideoController();

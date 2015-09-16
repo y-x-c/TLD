@@ -382,13 +382,10 @@
 			buildSettings = {
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					/usr/local/include,
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"/usr/local/lib/**",
-					/usr/local/Cellar/opencv/2.4.9/lib,
-				);
+				LIBRARY_SEARCH_PATHS = /usr/local/Cellar/opencv/2.4.9/lib;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -399,13 +396,10 @@
 			buildSettings = {
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					/usr/local/include,
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"/usr/local/lib/**",
-					/usr/local/Cellar/opencv/2.4.9/lib,
-				);
+				LIBRARY_SEARCH_PATHS = /usr/local/Cellar/opencv/2.4.9/lib;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
