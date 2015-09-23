@@ -5,7 +5,7 @@
 //  Created by 陈裕昕 on 11/4/14.
 //  Copyright (c) 2014 Fudan. All rights reserved.
 //
-
+#include <unistd.h>
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "ViewController.h"
@@ -23,10 +23,10 @@ using namespace cv;
 
 using json = nlohmann::json;
 
-char *FETCH_NEW_TASKS_URL = "http://localhost:8080/VideoInfo/getfilmtaginfobystate.do?state=0";
-char *GET_FILE_INFO_URL = "http://localhost:8080/VideoInfo/getmoviefilebyid.do";
-char *POST_RESULTS_URL = "http://localhost:8080/VideoInfo/setfilmtag.do";
-char *UPDATE_STATE_URL = "http://localhost:8080/VideoInfo/updatefilmtaginfobyid.do";
+char *FETCH_NEW_TASKS_URL = "http://localhost:8000/1.json";//"http://localhost:8080/VideoInfo/getfilmtaginfobystate.do?state=0";
+char *GET_FILE_INFO_URL = "http://localhost:8000/2.json";//"http://localhost:8080/VideoInfo/getmoviefilebyid.do";
+char *POST_RESULTS_URL = "http://localhost/log.php";//"http://localhost:8080/VideoInfo/setfilmtag.do";
+char *UPDATE_STATE_URL = "http://localhost/log.php";//"http://localhost:8080/VideoInfo/updatefilmtaginfobyid.do";
 
 void track(json task) {
     // get file path
@@ -66,7 +66,7 @@ void track(json task) {
     TLD tld(videoController.getCurrFrame(), rect);
     
     int status = TLD_TRACK_SUCCESS;
-    while(videoController.frameNumber() < 15 && status == TLD_TRACK_SUCCESS && videoController.readNextFrame())
+    while(status == TLD_TRACK_SUCCESS && videoController.readNextFrame())
     {
         cerr << "Frame #" << videoController.frameNumber() << endl;
         tld.setNextFrame(videoController.getCurrFrame());
