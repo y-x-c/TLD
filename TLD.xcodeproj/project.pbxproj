@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B9032B3E1BA98CD100708BD9 /* libcurl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B9032B3D1BA98CD100708BD9 /* libcurl.dylib */; };
 		B98256BE1A0BBADA00FEDB94 /* VarClassifier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98256BC1A0BBADA00FEDB94 /* VarClassifier.cpp */; };
 		B98256C31A0CF07800FEDB94 /* OpticalFlow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98256C01A0CF07800FEDB94 /* OpticalFlow.cpp */; };
 		B98256C41A0CF07800FEDB94 /* MedianFlow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98256C21A0CF07800FEDB94 /* MedianFlow.cpp */; };
@@ -51,6 +52,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B9032B3C1BA988F500708BD9 /* json.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = json.hpp; path = TLD/include/json.hpp; sourceTree = "<group>"; };
+		B9032B3D1BA98CD100708BD9 /* libcurl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.dylib; path = usr/lib/libcurl.dylib; sourceTree = SDKROOT; };
+		B9032B3F1BA992D700708BD9 /* NetworkHandler.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = NetworkHandler.hpp; sourceTree = "<group>"; };
 		B98256BC1A0BBADA00FEDB94 /* VarClassifier.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VarClassifier.cpp; sourceTree = "<group>"; };
 		B98256BD1A0BBADA00FEDB94 /* VarClassifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VarClassifier.h; sourceTree = "<group>"; };
 		B98256BF1A0CF07800FEDB94 /* OpticalFlow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OpticalFlow.h; path = MedianFlow/MedianFlow/OpticalFlow.h; sourceTree = SOURCE_ROOT; };
@@ -99,6 +103,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9032B3E1BA98CD100708BD9 /* libcurl.dylib in Frameworks */,
 				B9E510A91A0891660069B795 /* libopencv_nonfree.2.4.9.dylib in Frameworks */,
 				B9E510A11A0891660069B795 /* libopencv_core.2.4.9.dylib in Frameworks */,
 				B9E510AF1A0891660069B795 /* libopencv_video.2.4.9.dylib in Frameworks */,
@@ -168,6 +173,7 @@
 				B98AEAEA1A08B8CA006F7A7A /* VideoController.h */,
 				B98AEAEB1A08B8CA006F7A7A /* ViewController.cpp */,
 				B98AEAEC1A08B8CA006F7A7A /* ViewController.h */,
+				B9032B3F1BA992D700708BD9 /* NetworkHandler.hpp */,
 			);
 			name = Utils;
 			path = TLD;
@@ -176,6 +182,7 @@
 		B9E510771A088B950069B795 = {
 			isa = PBXGroup;
 			children = (
+				B9032B3D1BA98CD100708BD9 /* libcurl.dylib */,
 				B98256C81A0CF12600FEDB94 /* Utils */,
 				B98256C71A0CF0B600FEDB94 /* Learner */,
 				B98256C61A0CF0AF00FEDB94 /* Detector */,
@@ -208,6 +215,7 @@
 		B9E510B11A0891750069B795 /* Library */ = {
 			isa = PBXGroup;
 			children = (
+				B9032B3C1BA988F500708BD9 /* json.hpp */,
 				B9E5108D1A0891660069B795 /* libopencv_calib3d.2.4.9.dylib */,
 				B9E5108E1A0891660069B795 /* libopencv_contrib.2.4.9.dylib */,
 				B9E5108F1A0891660069B795 /* libopencv_core.2.4.9.dylib */,
@@ -382,13 +390,10 @@
 			buildSettings = {
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					/usr/local/include,
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"/usr/local/lib/**",
-					/usr/local/Cellar/opencv/2.4.9/lib,
-				);
+				LIBRARY_SEARCH_PATHS = /usr/local/Cellar/opencv/2.4.9/lib;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -399,13 +404,10 @@
 			buildSettings = {
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					/usr/local/include,
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"/usr/local/lib/**",
-					/usr/local/Cellar/opencv/2.4.9/lib,
-				);
+				LIBRARY_SEARCH_PATHS = /usr/local/Cellar/opencv/2.4.9/lib;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
