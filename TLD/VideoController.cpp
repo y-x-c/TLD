@@ -23,7 +23,13 @@ VideoController::VideoController(const string &path):
     
     int width = videoCapture->get(CV_CAP_PROP_FRAME_WIDTH);
     int height = videoCapture->get(CV_CAP_PROP_FRAME_HEIGHT);
-    _frameSize = Size(width * (240.f /width), height * (240.f / width));
+    
+    if(width > 480 || height > 480) {
+        int maxwh = max(width, height);
+        _frameSize = Size(width * (480.f / maxwh), height * (480.f / maxwh));
+    } else {
+        _frameSize = Size(width, height);
+    }
 
 }
 
@@ -103,5 +109,6 @@ int VideoController::frameNumber()
 
 void VideoController::jumpToFrameNum(int num)
 {
-    while(frameNumber() < num) readNextFrame();
+//    while(frameNumber() < num) readNextFrame();
+    videoCapture->set(CV_CAP_PROP_POS_FRAMES, num);
 }

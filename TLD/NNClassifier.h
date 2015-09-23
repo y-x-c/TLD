@@ -31,7 +31,7 @@ private:
     float calcSr(const Mat &img32F, int &maxSPIdx);
     bool update(const Mat &patch, int c);
     
-    Mat newSamplesP, newSamplesN;
+//    Mat newSamplesP, newSamplesN;
     void addToNewSamples(const Mat &patch, const int c);
     
 public:
