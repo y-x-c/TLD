@@ -165,31 +165,31 @@ bool NNClassifier::update(const Mat &patch, int c)
 
 void NNClassifier::addToNewSamples(const Mat &patch, const int c)
 {
-    const int newSamplesNum = 100;
+//    const int newSamplesNum = 100;
     
-    Mat &samples = (c == CLASS_POS ? newSamplesP : newSamplesN);
-    int n = samples.cols / NN_PATCH_SIZE;
+//    Mat &samples = (c == CLASS_POS ? newSamplesP : newSamplesN);
+//    int n = samples.cols / NN_PATCH_SIZE;
 
-    Mat tmp;
-    if(n > newSamplesNum)
-    {
-        tmp = Mat(NN_PATCH_SIZE, samples.cols, CV_8UC3);
-        
-        samples.colRange(NN_PATCH_SIZE, samples.cols).copyTo(tmp.colRange(0, samples.cols - NN_PATCH_SIZE));
-    }
-    else
-    {
-        tmp = Mat(NN_PATCH_SIZE, samples.cols + NN_PATCH_SIZE, CV_8UC3);
-        
-        if(samples.cols) samples.colRange(0, samples.cols).copyTo(tmp.colRange(0, samples.cols));
-    }
+//    Mat tmp;
+//    if(n > newSamplesNum)
+//    {
+//        tmp = Mat(NN_PATCH_SIZE, samples.cols, CV_8UC3);
+//        
+//        samples.colRange(NN_PATCH_SIZE, samples.cols).copyTo(tmp.colRange(0, samples.cols - NN_PATCH_SIZE));
+//    }
+//    else
+//    {
+//        tmp = Mat(NN_PATCH_SIZE, samples.cols + NN_PATCH_SIZE, CV_8UC3);
+//        
+//        if(samples.cols) samples.colRange(0, samples.cols).copyTo(tmp.colRange(0, samples.cols));
+//    }
+//    
+//    samples = tmp;
     
-    samples = tmp;
-    
-    Mat _patch = patch.clone();
-    normalize(_patch, _patch, 0, 255, NORM_MINMAX);
-    _patch.convertTo(_patch, CV_8U);
-    cvtColor(_patch, samples.colRange(samples.cols - NN_PATCH_SIZE, samples.cols), CV_GRAY2BGR);
+//    Mat _patch = patch.clone();
+//    normalize(_patch, _patch, 0, 255, NORM_MINMAX);
+//    _patch.convertTo(_patch, CV_8U);
+//    cvtColor(_patch, samples.colRange(samples.cols - NN_PATCH_SIZE, samples.cols), CV_GRAY2BGR);
 }
 
 void NNClassifier::train(const TYPE_TRAIN_DATA_SET &trainDataSet)
@@ -255,8 +255,8 @@ void NNClassifier::showModel()
     
     outputInfo("NN", info.str());
     
-    if(newSamplesP.cols) imshow("new positive samples", newSamplesP);
-    if(newSamplesN.cols) imshow("new negative samples", newSamplesN);
+//    if(newSamplesP.cols) imshow("new positive samples", newSamplesP);
+//    if(newSamplesN.cols) imshow("new negative samples", newSamplesN);
 
     waitKey(1);
 }
