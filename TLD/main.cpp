@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 Fudan. All rights reserved.
 //
 #include <unistd.h>
+#include <stdio.h>
 #include <iostream>
 #include <fstream>
 #include <opencv2/opencv.hpp>
@@ -30,16 +31,13 @@ const char *POST_RESULTS_URL;
 const char *UPDATE_STATE_URL;
 
 void loadURL(string configurePath){
-    ifstream configFile(configurePath);
-    string line;
-    getline(configFile,line);
-    //cout<<line<<endl;
+    ifstream configFile(configurePath, std::ios::binary);
+    
+    string s = string(std::istreambuf_iterator<char>(configFile),
+             std::istreambuf_iterator<char>());
     json config;
-    config=json::parse(line.c_str());
-    //cout<<config["FETCH_NEW_TASKS_URL"]<<endl;
-    //cout<<config["GET_FILE_INFO_URL"]<<endl;
-    //cout<<config["POST_RESULTS_URL"]<<endl;
-    //cout<<config["UPDATE_STATE_URL"]<<endl;
+    config=json::parse(s.c_str());
+    
     FETCH_NEW_TASKS_URL = config["FETCH_NEW_TASKS_URL"].get<string>().c_str();
     GET_FILE_INFO_URL = config["GET_FILE_INFO_URL"].get<string>().c_str();
     POST_RESULTS_URL = config["POST_RESULTS_URL"].get<string>().c_str();
