@@ -7,6 +7,7 @@
 //
 #include <unistd.h>
 #include <iostream>
+#include <fstream>
 #include <opencv2/opencv.hpp>
 #include "ViewController.h"
 #include "VideoController.h"
@@ -23,10 +24,28 @@ using namespace cv;
 
 using json = nlohmann::json;
 
-char *FETCH_NEW_TASKS_URL = "http://localhost:8080/VideoInfo/getfilmtaginfobystate.do?state=0";
-char *GET_FILE_INFO_URL = "http://localhost:8080/VideoInfo/getmoviefilebyid.do";
-char *POST_RESULTS_URL = "http://localhost:8080/VideoInfo/setfilmtag.do";
-char *UPDATE_STATE_URL = "http://localhost:8080/VideoInfo/updatefilmtaginfobyid.do";
+const char *FETCH_NEW_TASKS_URL;
+const char *GET_FILE_INFO_URL;
+const char *POST_RESULTS_URL;
+const char *UPDATE_STATE_URL;
+
+void loadURL(string configurePath){
+    ifstream configFile(configurePath);
+    string line;
+    getline(configFile,line);
+    //cout<<line<<endl;
+    json config;
+    config=json::parse(line.c_str());
+    //cout<<config["FETCH_NEW_TASKS_URL"]<<endl;
+    //cout<<config["GET_FILE_INFO_URL"]<<endl;
+    //cout<<config["POST_RESULTS_URL"]<<endl;
+    //cout<<config["UPDATE_STATE_URL"]<<endl;
+    FETCH_NEW_TASKS_URL = config["FETCH_NEW_TASKS_URL"].get<string>().c_str();
+    GET_FILE_INFO_URL = config["GET_FILE_INFO_URL"].get<string>().c_str();
+    POST_RESULTS_URL = config["POST_RESULTS_URL"].get<string>().c_str();
+    UPDATE_STATE_URL = config["UPDATE_STATE_URL"].get<string>().c_str();
+    return;
+}
 
 void track(json task) {
     // get file path
@@ -143,6 +162,14 @@ int main(int argc, char *argv[])
     //trajectory();
     //stabilize();
     
+    if(argc<=1){
+        cerr<<"Usage: ./TLD {dir of configure.json}"<<endl;
+        return -1;
+    }
+    
+    
+    loadURL(argv[1]); //Set up the URLs
+
     while(1) {
         fetchNewTasks();
         sleep(15);
