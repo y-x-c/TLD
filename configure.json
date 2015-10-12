@@ -1,0 +1,1 @@
+{"FETCH_NEW_TASKS_URL":"http://localhost:8080/VideoInfo/getfilmtaginfobystate.do?state=0","GET_FILE_INFO_URL":"http://localhost:8080/VideoInfo/getmoviefilebyid.do","POST_RESULTS_URL":"http://localhost:8080/VideoInfo/setfilmtag.do","UPDATE_STATE_URL":"http://localhost:8080/VideoInfo/updatefilmtaginfobyid.do"}
