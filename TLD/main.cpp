@@ -23,10 +23,10 @@ using namespace cv;
 
 using json = nlohmann::json;
 
-char *FETCH_NEW_TASKS_URL = "http://localhost:8000/1.json";//"http://localhost:8080/VideoInfo/getfilmtaginfobystate.do?state=0";
-char *GET_FILE_INFO_URL = "http://localhost:8000/2.json";//"http://localhost:8080/VideoInfo/getmoviefilebyid.do";
-char *POST_RESULTS_URL = "http://localhost/log.php";//"http://localhost:8080/VideoInfo/setfilmtag.do";
-char *UPDATE_STATE_URL = "http://localhost/log.php";//"http://localhost:8080/VideoInfo/updatefilmtaginfobyid.do";
+char *FETCH_NEW_TASKS_URL = "http://localhost:8080/VideoInfo/getfilmtaginfobystate.do?state=0";
+char *GET_FILE_INFO_URL = "http://localhost:8080/VideoInfo/getmoviefilebyid.do";
+char *POST_RESULTS_URL = "http://localhost:8080/VideoInfo/setfilmtag.do";
+char *UPDATE_STATE_URL = "http://localhost:8080/VideoInfo/updatefilmtaginfobyid.do";
 
 void track(json task) {
     // get file path
