@@ -5,7 +5,7 @@
 //  Created by 陈裕昕 on 11/4/14.
 //  Copyright (c) 2014 Fudan. All rights reserved.
 //
-
+#include <unistd.h>
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "ViewController.h"
@@ -66,7 +66,7 @@ void track(json task) {
     TLD tld(videoController.getCurrFrame(), rect);
     
     int status = TLD_TRACK_SUCCESS;
-    while(videoController.frameNumber() < 15 && status == TLD_TRACK_SUCCESS && videoController.readNextFrame())
+    while(status == TLD_TRACK_SUCCESS && videoController.readNextFrame())
     {
         cerr << "Frame #" << videoController.frameNumber() << endl;
         tld.setNextFrame(videoController.getCurrFrame());

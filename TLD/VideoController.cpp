@@ -23,6 +23,8 @@ VideoController::VideoController(const string &path):
     
     int width = videoCapture->get(CV_CAP_PROP_FRAME_WIDTH);
     int height = videoCapture->get(CV_CAP_PROP_FRAME_HEIGHT);
+
+    cerr << width << " " << height << endl;
     
     if(width > 480 || height > 480) {
         int maxwh = max(width, height);
@@ -88,6 +90,7 @@ bool VideoController::readNextFrame()
         
         if(f)
         {
+            cerr << _frameSize;
             resize(frames[curr], frames[curr], _frameSize);
         }
         

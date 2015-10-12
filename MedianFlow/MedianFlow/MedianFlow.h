@@ -10,7 +10,7 @@
 #define __MedianFlow__MedianFlow__
 
 
-#include "TLDSystemStruct.h"
+#include "../../TLD/TLDSystemStruct.h"
 
 #include <cmath>
 #include <iostream>
@@ -18,7 +18,7 @@
 #include "OpticalFlow.h"
 
 // show result
-#include "ViewController.h"
+#include "../../TLD/ViewController.h"
 //
 
 using namespace std;
