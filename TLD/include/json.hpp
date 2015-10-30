@@ -5821,7 +5821,7 @@ class basic_json
             literal_false,    ///< the "false" literal
             literal_null,     ///< the "null" literal
             value_string,     ///< a string - use get_string() for actual value
-            value_number,     ///< a number - use get_number() for actual value
+            value_number,     ///< a number - use f_number() for actual value
             begin_array,      ///< the character for array begin "["
             begin_object,     ///< the character for object begin "{"
             end_array,        ///< the character for array end "]"
