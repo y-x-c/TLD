@@ -127,7 +127,7 @@ void track(json task) {
     timeinfo = localtime (&rawtime);
     strftime (datetime, 80, "%F %R", timeinfo);
     
-    url = string(POST_RESULTS_URL) + "?ad_info_id=" + task["adInfoId"].get<string>() + "&create_time=" + datetime;
+    url = string(POST_RESULTS_URL) + "?ad_info_id=" + task["adInfoId"].get<string>() + "&create_time=" + datetime + "&create_user_id=" + net::ip;
     
     while(!net::post(url.c_str(), "list=" + json(results).dump())) {
         sleep(5);

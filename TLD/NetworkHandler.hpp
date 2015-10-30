@@ -16,6 +16,8 @@ using namespace std;
 
 namespace net {
     
+    char ip[80];
+    
     struct MemoryStruct {
         char *memory;
         size_t size;
@@ -127,6 +129,8 @@ namespace net {
         str = chunk.memory;
         
         free(chunk.memory);
+        
+        curl_easy_getinfo(curl_handle, CURLINFO_LOCAL_IP, &ip);
         
         /* we're done with libcurl, so clean it up */ 
         curl_global_cleanup();
