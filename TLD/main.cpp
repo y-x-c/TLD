@@ -17,6 +17,7 @@
 #include "TLDSystemStruct.h"
 #include "include/json.hpp"
 #include "NetworkHandler.hpp"
+#include <time.h>
 
 using namespace std;
 using namespace cv;
@@ -100,7 +101,16 @@ void track(json task) {
 //    cerr << "list=" + json(results).dump() << endl;
     
     // POST result
-    url = string(POST_RESULTS_URL) + "?ad_info_id=" + task["adInfoId"].get<string>();
+    
+    //get datetime
+    char datetime[80];
+    time_t rawtime;
+    struct tm * timeinfo;
+    time (&rawtime);
+    timeinfo = localtime (&rawtime);
+    strftime (datetime, 80, "%F %R", timeinfo);
+    
+    url = string(POST_RESULTS_URL) + "?ad_info_id=" + task["adInfoId"].get<string>() + "&create_time=" + datetime;
     
     while(!net::post(url.c_str(), "list=" + json(results).dump())) {
         sleep(5);
