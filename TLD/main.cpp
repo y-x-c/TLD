@@ -50,14 +50,14 @@ void track(json task) {
     // get file path
     string fileInfo;
     string url = string(GET_FILE_INFO_URL) + "?movie_file_id=";
-    url += task["movieId"].get<string>();
+    url += task["movieFileId"].get<string>();
     string _res;
     while(!net::get(url.c_str(), _res)) {
         sleep(5);
     }
     
     json res = json::parse(_res);
-    string filename = res["filePath"];
+    string filename = res["list"][0]["filePath"];
     
 //    cerr << filename << endl;
     
@@ -67,11 +67,17 @@ void track(json task) {
     VideoController videoController(filename);
 //    ViewController viewController(&videoController);
     
-    videoController.jumpToFrameNum(task["adFrame"]);
+    videoController.jumpToTime(task["adTime"].get<double>() * 1000);
     videoController.readNextFrame();
     
+    int width = videoController.getWidth(), height = videoController.getHeight();
+    task["adX"] = task["adX"].get<double>() * width;
+    task["adY"] = task["adY"].get<double>() * height;
+    task["adHeight"] = task["adWidth"].get<double>() * height;
+    task["adWidth"] = task["adLength"].get<double>() * width;
+    
     Point2i inTl(task["adX"], task["adY"]);
-    Point2i inBr(task["adX"].get<int>() + task["adWidth"].get<int>(), task["adY"].get<int>() + task["adHeight"].get<int>());
+    Point2i inBr(task["adX"].get<int>() + task["adWidth"].get<int>(), task["adY"].get<int>() + task["adLength"].get<int>());
     Rect rect(inTl, inBr);
 
 //    cerr << "Input Rect : " <<  rect << endl;
@@ -104,11 +110,11 @@ void track(json task) {
 //        viewController.showCache();
         
         results.push_back({
-            {"adX", tld.getBB().tl().x},
-            {"adY", tld.getBB().tl().y},
-            {"adWidth", tld.getBB().width},
-            {"adHeight", tld.getBB().height},
-            {"adFrame", videoController.frameNumber() - 1}
+            {"adX", double(tld.getBB().tl().x) / width},
+            {"adY", double(tld.getBB().tl().y) / height},
+            {"adWidth", double(tld.getBB().height) / height},
+            {"adLength", double(tld.getBB().width) / width},
+            {"adTime", videoController.getCurrMsec()}
         });
         
         cerr << endl;

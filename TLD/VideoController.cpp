@@ -57,6 +57,18 @@ VideoController::VideoController(int camera):
     _frameSize = Size(width * (480.f /width), height * (480.f / width));
 }
 
+int VideoController::getWidth() {
+    return videoCapture->get(CV_CAP_PROP_FRAME_WIDTH);
+}
+
+int VideoController::getHeight() {
+    return videoCapture->get(CV_CAP_PROP_FRAME_HEIGHT);
+}
+
+double VideoController::getCurrMsec() {
+    return videoCapture->get(CV_CAP_PROP_POS_MSEC);
+}
+
 Mat VideoController::getCurrFrame()
 {
     return frames[curr];
@@ -114,4 +126,8 @@ void VideoController::jumpToFrameNum(int num)
 {
 //    while(frameNumber() < num) readNextFrame();
     videoCapture->set(CV_CAP_PROP_POS_FRAMES, num);
+}
+
+void VideoController::jumpToTime(double msec) {
+    videoCapture->set(CV_CAP_PROP_POS_MSEC, msec);
 }
