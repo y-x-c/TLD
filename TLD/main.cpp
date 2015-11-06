@@ -47,6 +47,13 @@ void loadURL(string configurePath){
 }
 
 void track(json task) {
+    // convert
+    task["adTime"] = stod(task["adTime"].get<string>());
+    task["adWidth"] = stod(task["adWidth"].get<string>());
+    task["adLength"] = stod(task["adLength"].get<string>());
+    task["adX"] = stod(task["adX"].get<string>());
+    task["adY"] = stod(task["adY"].get<string>());
+    
     // get file path
     string fileInfo;
     string url = string(GET_FILE_INFO_URL) + "?movie_file_id=";
@@ -67,6 +74,7 @@ void track(json task) {
     VideoController videoController(filename);
 //    ViewController viewController(&videoController);
     
+    cerr << task << endl;
     videoController.jumpToTime(task["adTime"].get<double>() * 1000);
     videoController.readNextFrame();
     
