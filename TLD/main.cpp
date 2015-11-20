@@ -85,7 +85,7 @@ void track(json task) {
     task["adWidth"] = task["adLength"].get<double>() * width;
     
     Point2i inTl(task["adX"], task["adY"]);
-    Point2i inBr(task["adX"].get<int>() + task["adWidth"].get<int>(), task["adY"].get<int>() + task["adLength"].get<int>());
+    Point2i inBr(task["adX"].get<int>() + task["adWidth"].get<int>(), task["adY"].get<int>() + task["adHeight"].get<int>());
     Rect rect(inTl, inBr);
 
 //    cerr << "Input Rect : " <<  rect << endl;
