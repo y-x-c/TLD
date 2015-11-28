@@ -143,7 +143,7 @@ void track(json task) {
     
     url = string(POST_RESULTS_URL) + "?ad_info_id=" + task["adInfoId"].get<string>() + "&create_time=" + datetime + "&create_user_id=" + net::ip;
     
-    while(!net::post(url.c_str(), "list=" + json(results).dump())) {
+    while(!net::post(url.c_str(), "{\"list\":" + json(results).dump() + "}")) {
         sleep(5);
     }
 }
