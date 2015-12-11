@@ -19,6 +19,7 @@
 #include "TLDSystemStruct.h"
 #include "include/json.hpp"
 #include "NetworkHandler.hpp"
+#include <sstream>
 #include <time.h>
 
 using namespace std;
@@ -44,6 +45,12 @@ void loadURL(string configurePath){
     strcpy(POST_RESULTS_URL, config["POST_RESULTS_URL"].get<string>().c_str());
     strcpy(UPDATE_STATE_URL, config["UPDATE_STATE_URL"].get<string>().c_str());
     return;
+}
+
+string ftoa(double f) {
+    ostringstream convert;   // stream used for the conversion
+    convert << f;      // insert the textual representation of 'f' in the characters in the stream
+    return     convert.str();
 }
 
 void track(json task) {
@@ -117,34 +124,42 @@ void track(json task) {
 //        viewController.drawRect(tld.getBB(), COLOR_GREEN, 2);
 //        viewController.showCache();
         
-        results.push_back({
-            {"adX", double(tld.getBB().tl().x) / width},
-            {"adY", double(tld.getBB().tl().y) / height},
-            {"adWidth", double(tld.getBB().height) / height},
-            {"adLength", double(tld.getBB().width) / width},
-            {"adTime", videoController.getCurrMsec()}
-        });
+//        results.push_back({
+//            {"adX", double(tld.getBB().tl().x) / width},
+//            {"adY", double(tld.getBB().tl().y) / height},
+//            {"adWidth", double(tld.getBB().height) / height},
+//            {"adLength", double(tld.getBB().width) / width},
+//            {"adTime", videoController.getCurrMsec()}
+//        });
         
+        //get datetime
+        char datetime[80];
+        time_t rawtime;
+        struct tm * timeinfo;
+        time (&rawtime);
+        timeinfo = localtime (&rawtime);
+        strftime (datetime, 80, "%F %R", timeinfo);
+        
+        url = string(POST_RESULTS_URL) + "?ad_info_id=" + task["adInfoId"].get<string>() +
+                "&movie_id=" +  +
+                "&movie_file_id=" + task["movieFileId"].get<string>() +
+                "&remark=" + "" +
+                "&ad_during=" + "" +
+                "&ad_url=" + "" +
+                "&ad_path=" + "" +
+                "&ad_time=" + ftoa(videoController.getCurrMsec()) +
+                "&ad_length=" + ftoa((tld.getBB().br().x - tld.getBB().tl().x) / (double)width) +
+                "&ad_width=" + ftoa((tld.getBB().br().y - tld.getBB().tl().y) / (double)height) +
+                "&ad_x=" + ftoa(tld.getBB().tl().x / (double)width) +
+                "&ad_y=" + ftoa(tld.getBB().tl().y / (double)height) +
+                "&state=" + "1" +
+                "&ad_type=" + "1" +
+                "&create_time=" + datetime +
+                "&create_user_id=" + net::ip;
+        
+        while(!net::post(url.c_str(), "")) sleep(5);
+    
         cerr << endl;
-    }
-    
-//    cerr << results << endl;
-//    cerr << "list=" + json(results).dump() << endl;
-    
-    // POST result
-    
-    //get datetime
-    char datetime[80];
-    time_t rawtime;
-    struct tm * timeinfo;
-    time (&rawtime);
-    timeinfo = localtime (&rawtime);
-    strftime (datetime, 80, "%F %R", timeinfo);
-    
-    url = string(POST_RESULTS_URL) + "?ad_info_id=" + task["adInfoId"].get<string>() + "&create_time=" + datetime + "&create_user_id=" + net::ip;
-    
-    while(!net::post(url.c_str(), "{\"list\":" + json(results).dump() + "}")) {
-        sleep(5);
     }
 }
 
